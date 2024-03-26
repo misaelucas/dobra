@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
+import moment from 'moment-timezone'
 
 function Form() {
   const {
@@ -9,8 +10,19 @@ function Form() {
   } = useForm()
   const [payments, setPayments] = useState([])
   const [selectedOption, setSelectedOption] = useState('')
+  const currentDate = new Date().toISOString().split('T')[0] // Get current date in "YYYY-MM-DD" format
 
   const onSubmit = async (data) => {
+    // Adjust the 'date' field in 'data' to include current time and adjust for UTC-3
+    // Assuming 'data.date' comes in "YYYY-MM-DD" format and you want to add the current time in UTC-3
+    const now = moment().tz('America/Sao_Paulo') // Get current time in UTC-3 timezone
+    const adjustedDate = moment(data.date)
+      .tz('America/Sao_Paulo', true)
+      .subtract(3, 'hours')
+
+    // Replace 'date' with the adjusted datetime
+    data.date = adjustedDate.toISOString()
+
     try {
       const response = await fetch('http://localhost:3000/submit-form', {
         method: 'POST',
@@ -90,6 +102,7 @@ function Form() {
               id="especialidadeMedico"
               className="bg-gray-100 form-select mt-1 block w-full"
             >
+              <option value="Dermatologia">Clínico Geral</option>
               <option value="Dermatologia">Dermatologia</option>
               <option value="Endocrinologia">Endocrinologia</option>
               <option value="Gastroenterologia">Gastroenterologia</option>
@@ -157,6 +170,7 @@ function Form() {
           <input
             {...register('date')}
             type="date"
+            defaultValue={currentDate}
             id="date"
             className="bg-gray-100   form-input mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50"
           />
