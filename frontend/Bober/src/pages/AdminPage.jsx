@@ -7,8 +7,37 @@ function AdminPage() {
   const [month, setMonth] = useState('')
   const [day, setDay] = useState('')
   const [expandedFormId, setExpandedFormId] = useState(null)
+  const [expandedGroup, setExpandedGroup] = useState(null)
 
-  // Assuming this fetchForms function is called either on button click or after selection of year, month, and day
+  const groupByProcedure = (formData) => {
+    return formData.reduce((acc, item) => {
+      const { procedimento } = item
+      if (!acc[procedimento]) {
+        acc[procedimento] = []
+      }
+      acc[procedimento].push(item)
+      return acc
+    }, {})
+  }
+
+  function calculateTotalPrice(form) {
+    const moneyAmount = parseFloat(form.moneyAmount) || 0
+    const pixAmount = parseFloat(form.pixAmount) || 0
+    const creditCardAmount = parseFloat(form.creditCardAmount) || 0
+
+    return moneyAmount + pixAmount + creditCardAmount
+  }
+
+  function renderPaymentDetails(form) {
+    const details = []
+    if (form.moneyAmount) details.push(`Dinheiro: ${form.moneyAmount}`)
+    if (form.pixAmount) details.push(`Pix: ${form.pixAmount}`)
+    if (form.creditCardAmount) details.push(`Cartão: ${form.creditCardAmount}`)
+
+    // Show details if more than one payment type has an amount
+    return details.length > 1 ? ` (${details.join(', ')})` : ''
+  }
+
   const fetchForms = async () => {
     console.log('Fetching data with:', { year, month, day })
 
@@ -17,39 +46,26 @@ function AdminPage() {
       return
     }
 
-    const now = moment.tz('America/Sao_Paulo') // Get current time in Sao Paulo timezone
-    const adjustedDate = now.subtract(3, 'hours') // Subtract three hours to adjust for UTC-3 timezone
-
-    const queryParts = []
-    queryParts.push(`year=${adjustedDate.year()}`)
-    queryParts.push(`month=${adjustedDate.month() + 1}`) // Months are zero-based, so add 1
-    queryParts.push(`day=${adjustedDate.date()}`)
-    queryParts.push(`hour=${adjustedDate.hour()}`)
-    queryParts.push(`minute=${adjustedDate.minute()}`)
-    queryParts.push(`second=${adjustedDate.second()}`)
-
-    const queryString = queryParts.join('&')
+    // Directly use year, month, and day for the query
+    const queryString = `year=${year}&month=${month}&day=${day}`
 
     try {
       const response = await fetch(
         `http://localhost:3000/admin/forms?${queryString}`
       )
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+      if (response.ok) {
+        const formData = await response.json()
+        const formattedData = formData.map((form) => ({
+          ...form,
+          date: moment(form.date).format('YYYY-MM-DD HH:mm:ss'),
+        }))
+
+        // Group data by procedures
+        const groupedData = groupByProcedure(formattedData)
+        setForms(groupedData) // Now `forms` will hold grouped data by procedures
       }
 
-      const formData = await response.json()
-      const formattedData = formData.map((form) => ({
-        ...form,
-        // Use this line if your date field directly contains the date as a string
-        // date: moment(form.date).format('YYYY-MM-DD HH:mm:ss'),
-
-        // Use this line if your date is in an object like { "$date": "2024-03-26T05:29:35.440Z" }
-        date: moment(form.date.$date).format('YYYY-MM-DD HH:mm:ss'),
-      }))
-
       console.log('Formatted Data fetched:', formattedData)
-      setForms(formattedData) // Update the state with the formatted data
     } catch (error) {
       console.error('Fetch error:', error.message)
     }
@@ -61,14 +77,16 @@ function AdminPage() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center my-10">
-      <h2 className="text-2xl font-semibold mb-5">Admin Page</h2>
+    <div className="flex flex-col items-center justify-center my-10 font-mono adminpage ">
+      <h2 className="text-2xl font-semibold mb-5 text-white">
+        ADMINISTRATIVO{' '}
+      </h2>
       {/* Filters */}
       <div className="flex flex-wrap justify-between mb-4 w-full max-w-4xl">
         {/* Year Selection */}
         <div>
-          <label htmlFor="yearSelect" className="block text-gray-700">
-            Year
+          <label htmlFor="yearSelect" className="block text-white">
+            Ano
           </label>
           <select
             id="yearSelect"
@@ -76,9 +94,9 @@ function AdminPage() {
             onChange={(e) => setYear(e.target.value)}
             className="form-select mt-1 block w-full bg-gray-100"
           >
-            <option value="">Select Year</option>
+            <option value="">Escolher Ano</option>
             {Array.from(
-              new Array(20),
+              new Array(5),
               (val, index) => new Date().getFullYear() - index
             ).map((year, i) => (
               <option key={i} value={year}>
@@ -90,8 +108,8 @@ function AdminPage() {
 
         {/* Month Selection */}
         <div>
-          <label htmlFor="monthSelect" className="block text-gray-700">
-            Month
+          <label htmlFor="monthSelect" className="block text-white">
+            Mês
           </label>
           <select
             id="monthSelect"
@@ -99,7 +117,7 @@ function AdminPage() {
             onChange={(e) => setMonth(e.target.value)}
             className="form-select mt-1 block w-full bg-gray-100"
           >
-            <option value="">Select Month</option>
+            <option value="">Selecionar Mês</option>
             {Array.from({ length: 12 }, (_, i) => (
               <option key={i + 1} value={i + 1}>
                 {new Date(0, i).toLocaleString('default', { month: 'long' })}
@@ -110,8 +128,8 @@ function AdminPage() {
 
         {/* Day Selection */}
         <div>
-          <label htmlFor="daySelect" className="block text-gray-700">
-            Day
+          <label htmlFor="daySelect" className="block text-white">
+            Dia
           </label>
           <select
             id="daySelect"
@@ -119,7 +137,7 @@ function AdminPage() {
             onChange={(e) => setDay(e.target.value)}
             className="form-select mt-1 block w-full bg-gray-100"
           >
-            <option value="">Select Day</option>
+            <option value="">Escolher Dia</option>
             {Array.from({ length: 31 }, (_, i) => (
               <option key={i + 1} value={i + 1}>
                 {i + 1}
@@ -133,49 +151,48 @@ function AdminPage() {
         className="mb-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600
       focus:outline-none"
       >
-        Fetch Data
+        PROCURAR
       </button>
-      <div className="w-full max-w-4xl">
-        <table className="table-auto w-full">
-          <thead>
-            <tr className="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
-              <th className="py-3 px-6 text-left">Name</th>
-              <th className="py-3 px-6 text-left">Date</th>
-              <th className="py-3 px-6 text-left">Payments</th>
-            </tr>
-          </thead>
-          <tbody className="text-gray-600 text-sm font-light">
-            {forms.map((form) => (
-              <React.Fragment key={form._id}>
-                <tr
-                  className="border-b border-gray-200 hover:bg-gray-100 cursor-pointer"
-                  onClick={() => handleRowClick(form._id)}
-                >
-                  <td className="py-3 px-6 text-left">{form.pacienteNome}</td>
-                  <td className="py-3 px-6 text-left">{form.date}</td>
-                  <td className="py-3 px-6 text-left">
-                    {form.payments.join(', ')}
-                  </td>
-                </tr>
-                {expandedFormId === form._id && (
-                  <tr className="bg-gray-100">
-                    <td colSpan="3" className="py-3 px-6 text-left">
-                      <div>
-                        <strong>Observação:</strong> {form.observacao}
-                      </div>
-                      <div>
-                        <strong>Exame:</strong> {form.exame}
-                      </div>
-                      <div>
-                        <strong>Money Amount:</strong> {form.moneyAmount}
-                      </div>
-                    </td>
+      <div className="w-full max-w-4xl ">
+        {Object.entries(forms).map(([procedure, entries]) => (
+          <div key={procedure}>
+            <button
+              onClick={() =>
+                setExpandedGroup(expandedGroup === procedure ? null : procedure)
+              }
+              className="py-2 w-full text-left px-2 font-semibold mt-4 bg-green-400 text-black rounded"
+            >
+              {procedure} ({entries.length})
+            </button>
+            {expandedGroup === procedure && (
+              <table className="table-auto mt-1 bg-slate-800 mt-2 rounded w-full">
+                <thead>
+                  <tr className=" text-white uppercase text-sm leading-normal bg-slate-900">
+                    <th className="py-3 px-6 text-left">Nome</th>
+                    <th className="py-3 px-6 text-left">Preço</th>
+                    <th className="py-3 px-6 text-left">Pagamento</th>
                   </tr>
-                )}
-              </React.Fragment>
-            ))}
-          </tbody>
-        </table>
+                </thead>
+                <tbody className="text-white text-sm font-light">
+                  {entries.map((form, index) => (
+                    <tr key={index}>
+                      <td className="py-3 px-6 text-left">
+                        {form.pacienteNome}
+                      </td>
+                      <td className="py-3 px-6 text-left">
+                        {/* Dynamically calculate and display the price */}
+                        {`${calculateTotalPrice(form)}${renderPaymentDetails(form)}`}
+                      </td>
+                      <td className="py-3 px-6 text-left">
+                        {form.payments.join(', ')}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>{' '}
+              </table>
+            )}
+          </div>
+        ))}
       </div>
     </div>
   )
