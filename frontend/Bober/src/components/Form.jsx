@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import moment from 'moment-timezone'
-
+import bober from '../assets/boberkurva.gif'
 function Form() {
   const {
     register,
@@ -70,10 +70,11 @@ function Form() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-slate-800">
+      <img src={bober} alt="bober" className="w-50 rounded my-2" />
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="font-mono w-full sm:w-1/2 px-4 py-6 bg-white rounded-lg shadow-md overflow-y-auto max-h-screen mt-4 sm:mt-0"
+        className="font-sans mb-4 text-lg w-full sm:w-1/2 px-4 py-6 bg-white rounded-lg shadow-md overflow-y-auto max-h-screen mt-4 sm:mt-0"
       >
         <div className="mb-4">
           <label htmlFor="pacienteNome" className="block text-gray-700">
@@ -81,7 +82,7 @@ function Form() {
           </label>
           <input
             {...register('pacienteNome', {
-              required: 'This field is required',
+              required: 'Você precisa preencher esse campo.',
               minLength: {
                 value: 8,
                 message: 'O nome é muito pequeno... :P',
@@ -89,7 +90,7 @@ function Form() {
             })}
             type="text"
             id="pacienteNome"
-            className="form-input mt-1 pl-2 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 bg-gray-100"
+            className="form-input mt-1 pl-2 block w-full bg-gray-300 border-slate-600 rounded-md shadow-sm focus:border-slate-800 focus:ring focus:ring-blue-500 focus:ring-opacity-50"
           />
           {errors.pacienteNome && (
             <p className="text-red-500 mt-2 font-mono">
@@ -101,14 +102,14 @@ function Form() {
           <button
             type="button"
             onClick={() => handleOptionClick('especialidade')}
-            className={`px-4 py-2 rounded-l focus:outline-none ${procedureType === 'especialidade' ? 'bg-blue-500 text-white' : 'bg-gray-300 text-gray-700'}`}
+            className={`px-4 py-2 rounded focus:outline-none ${procedureType === 'especialidade' ? 'bg-blue-500 text-white' : 'bg-gray-300 text-gray-700'}`}
           >
             Especialidade
           </button>
           <button
             type="button"
             onClick={() => handleOptionClick('exame')}
-            className={`px-4 py-2 rounded-r focus:outline-none ${procedureType === 'exame' ? 'bg-blue-500 text-white' : 'bg-gray-300 text-gray-700'}`}
+            className={`px-4 py-2 rounded focus:outline-none ${procedureType === 'exame' ? 'bg-blue-500 text-white' : 'bg-gray-300 text-gray-700'}`}
           >
             Exame
           </button>

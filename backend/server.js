@@ -51,34 +51,34 @@ async function startServer() {
     try {
       const { year, month, day } = req.query;
 
-      // Construct a date object representing the start of the specified day
+      // Adjust for time zone (assuming America/Sao_Paulo, UTC-3)
+      const timezoneOffset = -3; // Offset for Sao Paulo
+
+      // Start of day in local time zone
       const startOfDay = moment
         .tz({ year, month: month - 1, day }, "America/Sao_Paulo")
-        .startOf("day");
+        .startOf("day")
+        .add(timezoneOffset, "hours");
 
-      // Construct a date object representing the end of the specified day
-      const endOfDay = moment(startOfDay).endOf("day");
+      // End of day in local time zone
+      const endOfDay = moment(startOfDay).add(1, "day");
 
       const database = client.db("BOBERKURWA");
       const collection = database.collection("entradas");
 
-      // Query the collection for documents within the specified day
       const query = {
         date: {
           $gte: startOfDay.toDate(),
-          $lte: endOfDay.toDate(),
+          $lt: endOfDay.toDate(),
         },
       };
 
       const forms = await collection.find(query).toArray();
 
-      // Convert the date back to a string including the time for display
-      const formattedForms = forms.map((form) => {
-        return {
-          ...form,
-          date: moment(form.date).format("YYYY-MM-DD HH:mm:ss"), // Adjust the format as you prefer
-        };
-      });
+      const formattedForms = forms.map((form) => ({
+        ...form,
+        date: moment(form.date).format("YYYY-MM-DD HH:mm:ss"), // Adjust the format as you prefer
+      }));
 
       res.status(200).json(formattedForms);
     } catch (error) {
