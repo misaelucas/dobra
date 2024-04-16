@@ -21,7 +21,7 @@ async function startServer() {
 
   app.post("/login", async (req, res) => {
     const { username, password } = req.body;
-    const database = client.db(process.env.DB_NAME); // Use environment variable for DB name
+    const database = client.db(process.env.DB_NAME);
     const usersCollection = database.collection("users");
 
     try {
@@ -33,11 +33,11 @@ async function startServer() {
       const passwordsMatch = await bcrypt.compare(password, user.passwordHash);
       if (passwordsMatch) {
         const token = jwt.sign(
-          { userId: user._id, role: user.role /* if you have roles */ },
+          { userId: user._id, role: user.role },
           process.env.JWT_SECRET,
           { expiresIn: "1h" }
         );
-        res.json({ token });
+        res.json({ token, role: user.role }); // Include role in response
       } else {
         res.status(401).json({ error: "Invalid username or password" });
       }
@@ -46,6 +46,7 @@ async function startServer() {
       res.status(500).json({ error: "Internal server error" });
     }
   });
+
 
   app.get("/admin/forms", async (req, res) => {
     try {

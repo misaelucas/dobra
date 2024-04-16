@@ -31,6 +31,17 @@ function AdminPage() {
 
     return moneyAmount + pixAmount + creditCardAmount
   }
+const calculateTotalPriceForProcedure = (procedure) => {
+  const totalPrice = forms[procedure].reduce((acc, entry) => {
+    // Ensure that the price is a valid number before adding it to the accumulator
+    const price = typeof entry.price === 'number' ? entry.price : 0
+    console.log('Price for', procedure, ':', price) // Log the price for debugging
+    return acc + price
+  }, 0)
+
+  return totalPrice
+}
+
 
   function renderPaymentDetails(form) {
     const details = []
@@ -188,10 +199,12 @@ function AdminPage() {
                     expandedGroup === procedure ? null : procedure
                   )
                 }
-                className="py-2 w-full text-left px-2  mt-4 bg-green-400 text-black rounded"
+                className="py-2 w-full text-left px-2 mt-4 bg-green-400 text-black rounded"
               >
-                {procedure} ({entries.length})
+                {`${procedure} (${entries.length})`} -{' '}
+                {calculateTotalPriceForProcedure(procedure)}
               </button>
+
               {expandedGroup === procedure && (
                 <table className="table-auto mt-1 bg-slate-900  mt-2 rounded w-full">
                   <thead>
@@ -226,7 +239,7 @@ function AdminPage() {
               )}
             </div>
           ))}
-          <div className="bg-slate-900 text-white rounded-lg shadow mt-4 mb-4 max-w-sm w-full">
+          <div className="bg-slate-900 ring-2  !ring-green-600/50 !ring-offset-slate-800 ring-offset-4  text-white rounded-lg shadow mt-4 mb-4 max-w-sm w-full">
             <div className="w-full rounded p-2 ">
               <h3 className="text-lg mb-1 ">Valor Total:</h3>
               <p className="font-bold ">R${totalSum.toFixed(2)}</p>

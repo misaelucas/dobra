@@ -1,26 +1,32 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client' // Import createRoot from react-dom/client
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
-import App from './App.jsx'
-import Login from './components/Login.jsx' // Assuming you have a Login component
-import AdminPage from './pages/AdminPage.jsx' // Import AdminPage component
-import './index.css'
-import { FormProvider } from './components/FormContext'
+// src/main.jsx
 
-// Use createRoot from react-dom/client
+import './index.css'
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import App from './App'
+import Login from './pages/Login'
+import AdminPage from './pages/AdminPage'
+import Form from './components/Form'
+import ProtectedRoute from './components/ProtectedRoute'
+
+import { AppProvider } from './contexts/AppContext'
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <FormProvider>
+    <AppProvider>
       <Router>
         <Routes>
-          <Route path="/login" element={<Login />} />{' '}
-          {/* Route for the login page */}
-          <Route path="/admin" element={<AdminPage />} />{' '}
-          {/* Route for the admin page */}
-          <Route path="/" element={<App />} />{' '}
-          {/* Default route for other pages */}
+          <Route path="/" element={<App />} />
+          <Route path="/login" element={<Login />} />
+          <Route
+            path="/admin"
+            element={<ProtectedRoute element={AdminPage} />}
+          />
+          <Route path="/form" element={<ProtectedRoute element={Form} />} />{' '}
+          {/* Protected route for the form */}
         </Routes>
       </Router>
-    </FormProvider>
+    </AppProvider>
   </React.StrictMode>
 )

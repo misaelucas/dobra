@@ -1,17 +1,21 @@
-// FormContext.js
-import React, { createContext, useContext } from 'react';
-import { useForm } from 'react-hook-form';
+import React, { createContext, useContext, useEffect, useState } from 'react'
 
-const FormContext = createContext();
-
-export const useFormContext = () => useContext(FormContext);
+const FormContext = createContext()
 
 export const FormProvider = ({ children }) => {
-  const { register, handleSubmit, formState: { errors } } = useForm();
-  
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+
+  useEffect(() => {
+    const token = localStorage.getItem('token')
+    if (token) {
+      setIsAuthenticated(true)
+    }
+  }, [])
   return (
-    <FormContext.Provider value={{ register, handleSubmit, errors }}>
+    <FormContext.Provider value={{ isAuthenticated, setIsAuthenticated }}>
       {children}
     </FormContext.Provider>
-  );
-};
+  )
+}
+
+export const useFormContext = () => useContext(FormContext)
