@@ -10,7 +10,6 @@ const ProtectedRoute = ({ element: Element, roles = [] }) => {
   }
 
   if (roles.length && !roles.includes(userRole)) {
-    // Redirect to an unauthorized page or back to home if role is not allowed
     return <Navigate to="/" />
   }
 

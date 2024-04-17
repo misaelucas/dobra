@@ -12,6 +12,9 @@ function AdminPage() {
   const [totalSum, setTotalSum] = useState(0)
   const [cashSum, setCashSum] = useState(0)
   const [digitalSum, setDigitalSum] = useState(0)
+  useEffect(() => {
+    console.log('Current forms state:', forms)
+  }, [forms])
 
   const groupByProcedure = (formData) => {
     return formData.reduce((acc, item) => {
@@ -31,16 +34,22 @@ function AdminPage() {
 
     return moneyAmount + pixAmount + creditCardAmount
   }
-const calculateTotalPriceForProcedure = (procedure) => {
-  const totalPrice = forms[procedure].reduce((acc, entry) => {
-    // Ensure that the price is a valid number before adding it to the accumulator
-    const price = typeof entry.price === 'number' ? entry.price : 0
-    console.log('Price for', procedure, ':', price) // Log the price for debugging
-    return acc + price
-  }, 0)
+ const calculateTotalPriceForProcedure = (procedure) => {
+   const formsForProcedure = forms[procedure]
+   if (!formsForProcedure || !formsForProcedure.length) {
+     return 0
+   }
 
-  return totalPrice
-}
+   let totalPrice = 0
+   formsForProcedure.forEach((form) => {
+     const moneyAmount = parseFloat(form.moneyAmount) || 0
+     const pixAmount = parseFloat(form.pixAmount) || 0
+     const creditCardAmount = parseFloat(form.creditCardAmount) || 0
+     totalPrice += moneyAmount + pixAmount + creditCardAmount
+   })
+
+   return totalPrice.toFixed(2)
+ }
 
 
   function renderPaymentDetails(form) {
