@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import moment from 'moment-timezone'
 import Header from '../components/Header'
-
+import logo from '../assets/logo.png'
 function AdminPage() {
   const [forms, setForms] = useState([])
   const [year, setYear] = useState('2024')
@@ -113,9 +112,14 @@ function AdminPage() {
   }
 
   const fetchExpenses = async () => {
+    if (!year || !month || !day) {
+      return // Do not fetch if date is incomplete
+    }
+
     const paddedMonth = month.toString().padStart(2, '0')
     const paddedDay = day.toString().padStart(2, '0')
     const queryString = `year=${year}&month=${paddedMonth}&day=${paddedDay}`
+
     try {
       const response = await fetch(
         `http://localhost:3000/admin/expenses?${queryString}`
@@ -129,26 +133,20 @@ function AdminPage() {
         )
         setExpenseSum(totalExpenses)
       } else {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        console.error(`HTTP error! status: ${response.status}`)
       }
     } catch (error) {
       console.error('Fetch error:', error.message)
     }
   }
 
-  useEffect(() => {
-    if (year && month && day) {
-      fetchExpenses()
-    }
-  }, [year, month, day]) // Re-fetch expenses when date filters change
-
   return (
     <div className="!bg-slate-800">
       <Header />
+      <div className="flex justify-center mt-4">
+        <img src={logo} alt="Logo" className="w-48" />
+      </div>
       <div className="flex flex-col items-center justify-center pt-2 !bg-slate-800 font-sans text-lg adminpage ">
-        <h2 className="text-2xl font-semibold mb-5 text-white">
-          ADMINISTRATIVO{' '}
-        </h2>
         {/* Filters */}
         <div className="flex flex-wrap justify-between mb-4 w-full max-w-4xl">
           {/* Year Selection */}
@@ -287,18 +285,22 @@ function AdminPage() {
               </div>
             </div>
 
-            <div className="expense-summary bg-slate-900  text-white rounded-lg p-2 ">
-              <h3 className="text-lg">Despesas:</h3>
-              {expenses.map((expense, index) => (
-                <div key={index} className="expense-item ">
-                  <p className="">
-                    {expense.description}: R$
-                    {parseFloat(expense.amount).toFixed(2)}
-                  </p>
-                </div>
-              ))}
-              <p className="mt-4 ">Total Despesas: R${expenseSum.toFixed(2)}</p>
-            </div>
+            {expenses.length > 0 && (
+              <div className="expense-summary bg-slate-900 text-white rounded-lg p-2">
+                <h3 className="text-lg">Despesas:</h3>
+                {expenses.map((expense, index) => (
+                  <div key={index} className="expense-item">
+                    <p>
+                      {expense.description}: R$
+                      {parseFloat(expense.amount).toFixed(2)}
+                    </p>
+                  </div>
+                ))}
+                <p className="mt-4">
+                  Total Despesas: R${expenseSum.toFixed(2)}
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>

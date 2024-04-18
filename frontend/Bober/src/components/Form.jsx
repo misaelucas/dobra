@@ -73,11 +73,10 @@ function Form() {
   return (
     <>
       <Header />
-      <div className="flex flex-col items-center justify-center min-h-screen bg-slate-800">
-        <img src={bober} alt="bober" className="w-50 rounded my-2  " />
+      <div className="flex flex-col items-center justify-center min-h-screen mt-4 bg-slate-800">
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="font-sans mb-4 text-lg w-full sm:w-1/2 px-4 py-6 bg-white rounded-lg shadow-md ring-2 ring-green-400/50 ring-offset-4 ring-offset-slate-800 overflow-y-auto max-h-screen !mt-4 sm:mt-0"
+          className="font-sans text-lg w-full sm:w-1/2 px-4 py-6 bg-white rounded-lg  ring-2 ring-green-400/50 ring-offset-4 ring-offset-slate-800 overflow-y-auto max-h-screen "
         >
           <div className="mb-4">
             <label htmlFor="pacienteNome" className="block text-gray-700">
@@ -267,7 +266,7 @@ function Form() {
             </div>
           )}
           {payments.length === 0 && (
-            <p className="text-red-500 font-semibold">
+            <p className="text-red-600 font-bold">
               Por favor, escolha um método de pagamento!
             </p>
           )}

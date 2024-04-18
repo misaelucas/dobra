@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import Header from './Header'
-
+import logo from '../assets/logo.png'
 function ExpenseForm() {
   const [amount, setAmount] = useState('')
   const [description, setDescription] = useState('')
@@ -13,10 +13,17 @@ function ExpenseForm() {
       return
     }
 
+    // Validate that amount is a number and not NaN
+    const numericAmount = parseFloat(amount)
+    if (isNaN(numericAmount)) {
+      alert('Please enter a valid number for the amount')
+      return
+    }
+
     const expenseData = {
-      amount,
+      amount: numericAmount, // Use the parsed amount
       description,
-      date, // Use the selected date
+      date,
     }
 
     try {
@@ -27,7 +34,7 @@ function ExpenseForm() {
       })
 
       if (response.ok) {
-        alert('Expense added successfully!')
+        alert('Despesa adicionada com sucesso!')
         setAmount('')
         setDescription('')
         setDate(new Date().toISOString().split('T')[0]) // Reset date to today
@@ -43,7 +50,11 @@ function ExpenseForm() {
   return (
     <>
       <Header />
-      <div className="flex flex-col items-center justify-center min-h-screen bg-slate-800">
+      <div className="flex justify-center mt-2">
+        <img src={logo} alt="Logo" className="w-48" />
+      </div>
+
+      <div className="flex flex-col items-center justify-center mx-4 bg-slate-800">
         <form
           onSubmit={handleSubmit}
           className="w-full max-w-sm bg-white p-5 rounded shadow-lg"
@@ -53,14 +64,16 @@ function ExpenseForm() {
               htmlFor="amount"
               className="block text-gray-700 text-sm font-bold mb-2"
             >
-             Valor
+              Valor
             </label>
             <input
-              type="text"
+              type="number"
               id="amount"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              min="0" // Ensures non-negative numbers
+              step="0.01" // Allow decimal values
             />
           </div>
           <div className="mb-4">
