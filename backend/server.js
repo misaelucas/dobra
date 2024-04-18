@@ -47,7 +47,6 @@ async function startServer() {
     }
   });
 
-
   app.get("/admin/forms", async (req, res) => {
     try {
       const { year, month, day } = req.query;
@@ -84,6 +83,42 @@ async function startServer() {
       res.status(200).json(formattedForms);
     } catch (error) {
       console.error("Failed to fetch forms:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.post("/admin/expenses", async (req, res) => {
+    const expenseData = req.body;
+    console.log(req.query); // See what date parameters are being received
+
+    try {
+      const database = client.db("BOBERKURWA");
+      const expensesCollection = database.collection("expenses");
+      await expensesCollection.insertOne(expenseData);
+      res.status(201).json({ message: "Despesa adicionada com sucesso" });
+    } catch (error) {
+      console.error("Erro ao inserir despesa no banco de dandos:", error);
+      res.status(500).json({ error: "DEU PROBLEMA.. ERRO 500" });
+    }
+  });
+
+  app.get("/admin/expenses", async (req, res) => {
+    const { year, month, day } = req.query;
+    const formattedDate = `${year}-${month.padStart(2, "0")}-${day.padStart(
+      2,
+      "0"
+    )}`;
+
+    console.log("Fetching expenses for date:", formattedDate);
+
+    try {
+      const database = client.db("BOBERKURWA");
+      const expensesCollection = database.collection("expenses");
+      const query = { date: formattedDate };
+      const expenses = await expensesCollection.find(query).toArray();
+      res.status(200).json(expenses);
+    } catch (error) {
+      console.error("Failed to fetch expenses:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });

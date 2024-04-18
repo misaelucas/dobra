@@ -12,9 +12,8 @@ function AdminPage() {
   const [totalSum, setTotalSum] = useState(0)
   const [cashSum, setCashSum] = useState(0)
   const [digitalSum, setDigitalSum] = useState(0)
-  useEffect(() => {
-    console.log('Current forms state:', forms)
-  }, [forms])
+  const [expenses, setExpenses] = useState([])
+  const [expenseSum, setExpenseSum] = useState(0)
 
   const groupByProcedure = (formData) => {
     return formData.reduce((acc, item) => {
@@ -27,6 +26,12 @@ function AdminPage() {
     }, {})
   }
 
+  useEffect(() => {
+    if (year && month && day) {
+      fetchExpenses()
+    }
+  }, [year, month, day]) // This will refetch expenses whenever the date filters change
+
   function calculateTotalPrice(form) {
     const moneyAmount = parseFloat(form.moneyAmount) || 0
     const pixAmount = parseFloat(form.pixAmount) || 0
@@ -34,23 +39,22 @@ function AdminPage() {
 
     return moneyAmount + pixAmount + creditCardAmount
   }
- const calculateTotalPriceForProcedure = (procedure) => {
-   const formsForProcedure = forms[procedure]
-   if (!formsForProcedure || !formsForProcedure.length) {
-     return 0
-   }
+  const calculateTotalPriceForProcedure = (procedure) => {
+    const formsForProcedure = forms[procedure]
+    if (!formsForProcedure || !formsForProcedure.length) {
+      return 0
+    }
 
-   let totalPrice = 0
-   formsForProcedure.forEach((form) => {
-     const moneyAmount = parseFloat(form.moneyAmount) || 0
-     const pixAmount = parseFloat(form.pixAmount) || 0
-     const creditCardAmount = parseFloat(form.creditCardAmount) || 0
-     totalPrice += moneyAmount + pixAmount + creditCardAmount
-   })
+    let totalPrice = 0
+    formsForProcedure.forEach((form) => {
+      const moneyAmount = parseFloat(form.moneyAmount) || 0
+      const pixAmount = parseFloat(form.pixAmount) || 0
+      const creditCardAmount = parseFloat(form.creditCardAmount) || 0
+      totalPrice += moneyAmount + pixAmount + creditCardAmount
+    })
 
-   return totalPrice.toFixed(2)
- }
-
+    return totalPrice.toFixed(2)
+  }
 
   function renderPaymentDetails(form) {
     const details = []
@@ -61,9 +65,6 @@ function AdminPage() {
     // Show details if more than one payment type has an amount
     return details.length > 1 ? ` (${details.join(', ')})` : ''
   }
-  useEffect(() => {
-    console.log('Forms updated:', forms)
-  }, [forms])
 
   const fetchForms = async () => {
     if (!year || !month || !day) {
@@ -80,9 +81,6 @@ function AdminPage() {
       )
       if (response.ok) {
         const formData = await response.json()
-
-        // Since the server already formats the dates, we can simplify the client code
-        console.log('Formatted Data from Server:', formData)
 
         // Group data by procedures
         const groupedData = groupByProcedure(formData)
@@ -114,13 +112,38 @@ function AdminPage() {
     }
   }
 
-  const handleRowClick = (formId) => {
-    // Toggles the expanded state for the clicked form
-    setExpandedFormId(expandedFormId === formId ? null : formId)
+  const fetchExpenses = async () => {
+    const paddedMonth = month.toString().padStart(2, '0')
+    const paddedDay = day.toString().padStart(2, '0')
+    const queryString = `year=${year}&month=${paddedMonth}&day=${paddedDay}`
+    try {
+      const response = await fetch(
+        `http://localhost:3000/admin/expenses?${queryString}`
+      )
+      if (response.ok) {
+        const expenseData = await response.json()
+        setExpenses(expenseData)
+        const totalExpenses = expenseData.reduce(
+          (sum, expense) => sum + parseFloat(expense.amount),
+          0
+        )
+        setExpenseSum(totalExpenses)
+      } else {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+    } catch (error) {
+      console.error('Fetch error:', error.message)
+    }
   }
 
+  useEffect(() => {
+    if (year && month && day) {
+      fetchExpenses()
+    }
+  }, [year, month, day]) // Re-fetch expenses when date filters change
+
   return (
-    <div>
+    <div className="!bg-slate-800">
       <Header />
       <div className="flex flex-col items-center justify-center pt-2 !bg-slate-800 font-sans text-lg adminpage ">
         <h2 className="text-2xl font-semibold mb-5 text-white">
@@ -248,19 +271,33 @@ function AdminPage() {
               )}
             </div>
           ))}
-          <div className="bg-slate-900 ring-2  !ring-green-600/50 !ring-offset-slate-800 ring-offset-4  text-white rounded-lg shadow mt-4 mb-4 max-w-sm w-full">
-            <div className="w-full rounded p-2 ">
-              <h3 className="text-lg mb-1 ">Valor Total:</h3>
-              <p className="font-bold ">R${totalSum.toFixed(2)}</p>
+          <div className="flex w-[500px] bg-slate-900 ring-2  !ring-green-600/50 !ring-offset-slate-800 ring-offset-4  text-white rounded-lg shadow mt-4 mb-4 w-full">
+            <div className="w-full rounded p-2 flex flex-col">
+              <h3 className="text-lg mb-1 ">
+                Valor Total com despesas inclusas:
+              </h3>
+              <p>R${(totalSum - expenseSum).toFixed(2)}</p>
+              <div className="w-full rounded ">
+                <h3 className="text-lg mb-1 mt-4">Valor total em dinheiro:</h3>
+                <p className="font-bold">R${cashSum.toFixed(2)}</p>
+              </div>
+              <div className="w-full rounded mt-4">
+                <h3 className="text-lg mb-1">Valor total em pix e cartão:</h3>
+                <p className="font-bold">R${digitalSum.toFixed(2)}</p>
+              </div>
             </div>
 
-            <div className="w-full rounded p-2">
-              <h3 className="text-lg mb-1">Valor total em dinheiro:</h3>
-              <p className="font-bold">R${cashSum.toFixed(2)}</p>
-            </div>
-            <div className="w-full rounded p-2">
-              <h3 className="text-lg mb-1">Valor total em pix e cartão:</h3>
-              <p className="font-bold">R${digitalSum.toFixed(2)}</p>
+            <div className="expense-summary bg-slate-900  text-white rounded-lg p-2 ">
+              <h3 className="text-lg">Despesas:</h3>
+              {expenses.map((expense, index) => (
+                <div key={index} className="expense-item ">
+                  <p className="">
+                    {expense.description}: R$
+                    {parseFloat(expense.amount).toFixed(2)}
+                  </p>
+                </div>
+              ))}
+              <p className="mt-4 ">Total Despesas: R${expenseSum.toFixed(2)}</p>
             </div>
           </div>
         </div>

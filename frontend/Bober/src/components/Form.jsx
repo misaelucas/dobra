@@ -74,11 +74,7 @@ function Form() {
     <>
       <Header />
       <div className="flex flex-col items-center justify-center min-h-screen bg-slate-800">
-        <img
-          src={bober}
-          alt="bober"
-          className="w-50 rounded my-2  "
-        />
+        <img src={bober} alt="bober" className="w-50 rounded my-2  " />
         <form
           onSubmit={handleSubmit(onSubmit)}
           className="font-sans mb-4 text-lg w-full sm:w-1/2 px-4 py-6 bg-white rounded-lg shadow-md ring-2 ring-green-400/50 ring-offset-4 ring-offset-slate-800 overflow-y-auto max-h-screen !mt-4 sm:mt-0"
@@ -133,23 +129,23 @@ function Form() {
                 {...register('especialidadeMedico')}
                 className="bg-gray-100 form-select mt-1 block w-full"
               >
-                <option value="Dermatologia">Clínico Geral</option>
-                <option value="Dermatologia">Dermatologia</option>
-                <option value="Endocrinologia">Endocrinologia</option>
-                <option value="Gastroenterologia">Gastroenterologia</option>
-                <option value="Geriatria">Geriatria</option>
-                <option value="Ginecologia">Ginecologia</option>
-                <option value="Nefrologia">Nefrologia</option>
-                <option value="Neurologia">Neurologia</option>
+                <option value="Clinico">Clínico Geral</option>
+                <option value="Cardiologia">Cardiologista</option>
+                <option value="Dermatologia">Dermatologista</option>
+                <option value="Endocrinologia">Endocrinologista</option>
+                <option value="Gastroenterologia">Gastroenterologista</option>
+                <option value="Geriatria">Geriatra</option>
+                <option value="Ginecologia">Ginecologista</option>
+                <option value="Nefrologia">Nefrologista</option>
+                <option value="Neurologia">Neurologista</option>
                 <option value="Nutrição">Nutrição</option>
-                <option value="Ortopedia">Ortopedia</option>
+                <option value="Ortopedia">Ortopedista</option>
                 <option value="Otorrinolaringologia">
                   Otorrinolaringologia
                 </option>
-                <option value="Cardiologia">Cardiologia</option>
-                <option value="Cirurgia Vascular">Cirurgia Vascular</option>
-                <option value="Psicologia">Psicologia</option>
-                <option value="Urologia">Urologia</option>
+                <option value="Psicologia">Psicóloga</option>
+                <option value="Urologia">Urologista</option>
+                <option value="Vascular">Vascular</option>
               </select>
             </div>
           ) : procedureType === 'exame' ? (
@@ -162,27 +158,36 @@ function Form() {
                 className="bg-gray-100 form-select mt-1 block w-full"
               >
                 <option value="Audiometria">Audiometria</option>
+                <option value="ASO">ASO</option>
+                <option value="Atestado">Atestado</option>
                 <option value="Biópsia">Biópsia</option>
-                <option value="Ecocardiograma">Ecocardiograma</option>
-                <option value="Eletrocardiograma">Eletrocardiograma</option>
+                <option value="Ecocardiograma">ECO</option>
+                <option value="Eletrocardiograma">ECG</option>
                 <option value="Endoscopia">Endoscopia</option>
+                <option value="Espirometria">Espirometria</option>
                 <option value="Fototerapia">Fototerapia</option>
+                <option value="Hemograma">Hemograma</option>
                 <option value="Holter">Holter</option>
+                <option value="Lab">LAB</option>
                 <option value="Mapa">Mapa</option>
                 <option value="Perfil Lipídico">Perfil Lipídico</option>
                 <option value="Raio-x">Raio-X</option>
-                <option value="USG Abd Total">USG Abd Total</option>
-                <option value="USG Abd Inferior">USG Abd Inferior</option>
-                <option value="USG Abd Superior">USG Abd Superior</option>
+                <option value="USG ABD Total">USG ABD Total</option>
+                <option value="USG ABD Inferior">USG ABD Inferior</option>
+                <option value="USG ABD Superior">USG ABD Superior</option>
                 <option value="USG Bolsa Escrotal">USG Bolsa Escrotal</option>
+                <option value="USG MI E">USG MI E</option>
+                <option value="USG MI D">USG MI D</option>
+                <option value="USG MMII">USG MMII</option>
+                <option value="USG Pélvica">USG Pélvica</option>
+                <option value="USG Próstata">USG Próstata</option>
                 <option value="USG Rins e Vias Urinárias">
                   USG Rins e Vias Urinárias
                 </option>
-                <option value="USG Próstata">USG Próstata</option>
               </select>
             </div>
           ) : null}
-          
+
           <div className="mb-4">
             <label htmlFor="payments" className="block text-gray-700">
               Formas de Pagamento
@@ -266,16 +271,6 @@ function Form() {
               Por favor, escolha um método de pagamento!
             </p>
           )}
-          <div className="mb-4 ">
-            <label htmlFor="observacao" className="block text-gray-700 ">
-              Observação:
-            </label>
-            <textarea
-              {...register('observacao')}
-              id="observacao"
-              className="form-textarea mt-1 block w-full bg-gray-200 border-0 rounded-md shadow-sm focus:ring focus:ring-blue-500 focus:ring-opacity-50 px-1"
-            ></textarea>
-          </div>
           <button
             type="submit"
             className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 focus:outline-none focus:bg-blue-600"

@@ -11,6 +11,7 @@ import Form from './components/Form'
 import ProtectedRoute from './components/ProtectedRoute'
 
 import { AppProvider } from './contexts/AppContext'
+import ExpenseForm from './components/ExpenseForm'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
@@ -25,6 +26,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           />
           <Route path="/form" element={<ProtectedRoute element={Form} />} />{' '}
           {/* Protected route for the form */}
+          <Route path="/despesas" element={<ExpenseForm />} />
         </Routes>
       </Router>
     </AppProvider>

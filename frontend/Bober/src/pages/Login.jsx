@@ -39,12 +39,14 @@ function Login() {
   }
 
   return (
-    <>
+    <div className="!bg-slate-800">
       {' '}
       <Header />
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-        <div className="max-w-md w-full px-6 py-8 bg-white shadow-md rounded-md">
-          <h2 className="text-2xl font-semibold text-center mb-6">Login</h2>
+      <div className="flex flex-col items-center justify-center min-h-screen bg-slate-800">
+        <div className="max-w-md w-full px-6 py-8 bg-white shadow-md rounded-md border rounded   ring-offset-4 ring-2 ring-green-400/50 ring-offset-slate-800">
+          <h2 className="text-2xl font-semibold text-center mb-6 rounded  	">
+            Login
+          </h2>
           <form onSubmit={handleSubmit}>
             <div className="mb-4">
               <label className="block text-gray-700">Username/Email:</label>
@@ -76,7 +78,7 @@ function Login() {
           </form>
         </div>
       </div>
-    </>
+    </div>
   )
 }
 
