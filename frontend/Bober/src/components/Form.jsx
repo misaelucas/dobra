@@ -139,7 +139,7 @@ function Form() {
                 <option value="Ginecologia">Ginecologista</option>
                 <option value="Nefrologia">Nefrologista</option>
                 <option value="Neurologia">Neurologista</option>
-                <option value="Nutrição">Nutrição</option>
+                <option value="Nutricionista">Nutricionista</option>
                 <option value="Ortopedia">Ortopedista</option>
                 <option value="Otorrinolaringologia">
                   Otorrinolaringologia

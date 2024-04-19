@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import Header from '../components/Header'
 import logo from '../assets/logo.png'
+import API_BASE_URL from '../config';
+
 function AdminPage() {
   const [forms, setForms] = useState([])
   const [year, setYear] = useState('2024')
@@ -75,8 +77,7 @@ function AdminPage() {
     const queryString = `year=${year}&month=${month}&day=${day}`
 
     try {
-      const response = await fetch(
-        `http://localhost:3000/admin/forms?${queryString}`
+      const response = await fetch(`${API_BASE_URL}/admin/forms?${queryString}`
       )
       if (response.ok) {
         const formData = await response.json()
@@ -119,10 +120,8 @@ function AdminPage() {
     const paddedMonth = month.toString().padStart(2, '0')
     const paddedDay = day.toString().padStart(2, '0')
     const queryString = `year=${year}&month=${paddedMonth}&day=${paddedDay}`
-
     try {
-      const response = await fetch(
-        `http://localhost:3000/admin/expenses?${queryString}`
+      const response = await fetch(`${API_BASE_URL}/admin/expenses?${queryString}`
       )
       if (response.ok) {
         const expenseData = await response.json()
