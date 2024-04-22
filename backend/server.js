@@ -3,12 +3,14 @@ const cors = require("cors");
 
 require("dotenv").config();
 const { MongoClient } = require("mongodb");
+const { ObjectId } = require('mongodb');
 const bcrypt = require("bcrypt");
 const moment = require("moment-timezone");
 const jwt = require("jsonwebtoken");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
 app.use(express.json());
 app.use(cors());
 
@@ -138,6 +140,24 @@ app.get("/admin/expenses", async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
+
+app.delete("/admin/forms/:id", async (req, res) => {
+  const { id } = req.params;
+  const collection = dbClient.db(process.env.DB_NAME).collection("entradas");
+
+  try {
+    const result = await collection.deleteOne({ _id: new ObjectId(id) });
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ error: "Form not found" });
+    }
+    res.status(200).json({ message: "Form deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting form:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 
 async function startServer() {
   await connectDB(); // Connect to DB before starting the server

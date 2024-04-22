@@ -6,25 +6,20 @@ import Header from './Header'
 import API_BASE_URL from '../config';
 
 function Form() {
-  const {
-    register,
-    handleSubmit,
-    watch,
-    setValue,
-    formState: { errors },
-  } = useForm()
+  const { register, handleSubmit, watch, setValue, reset, formState: { errors } } = useForm();
+
   const [payments, setPayments] = useState([])
   const currentDate = new Date().toISOString().split('T')[0]
 
   const onSubmit = async (data) => {
     if (!window.confirm('Tem certeza que quer adicionar essa entrada?')) {
-      return // Stop submission if not confirmed
+      return; // Stop submission if not confirmed
     }
 
     const procedureValue =
       data.procedureType === 'especialidade'
         ? data.especialidadeMedico
-        : data.exame
+        : data.exame;
 
     let submissionData = {
       pacienteNome: data.pacienteNome,
@@ -38,7 +33,7 @@ function Form() {
       moneyAmount: data.moneyAmount || '',
       creditCardAmount: data.creditCardAmount || '',
       pixAmount: data.pixAmount || '',
-    }
+    };
 
     try {
       const response = await fetch(`${API_BASE_URL}/submit-form`, {
@@ -49,6 +44,18 @@ function Form() {
 
       if (response.ok) {
         alert('Entrada adicionada!');
+        // Reset all form fields to initial state
+        reset({
+          pacienteNome: '',
+          observacao: '',
+          moneyAmount: '',
+          creditCardAmount: '',
+          pixAmount: '',
+          especialidadeMedico: '',
+          exame: '',
+        });
+        // Reset custom states
+        setPayments([]);
       } else {
         console.error('Erro em enviar o formulário:', response.statusText);
       }
@@ -56,6 +63,7 @@ function Form() {
       console.error('Error submitting form:', error.message);
     }
   }
+
 
   const handlePaymentChange = (event) => {
     const { value, checked } = event.target

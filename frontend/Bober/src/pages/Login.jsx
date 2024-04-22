@@ -30,7 +30,7 @@ function Login() {
       } else {
         // Handle login failure
         setErrorMessage(
-          ' Falhouuuuuu, veja sua senha/usuário. Qualquer dúvida, falar com o coitado do misa...(eu nao recebo salário e faço as coisas de graça)'
+          ' Falhou, veja sua senha/usuário.'
         )
       }
     } catch (error) {
@@ -46,11 +46,11 @@ function Login() {
       <div className="flex flex-col items-center justify-center min-h-screen bg-slate-800">
         <div className="max-w-md w-full px-6 py-8 bg-white shadow-md rounded-md border rounded   ring-offset-4 ring-2 ring-green-400/50 ring-offset-slate-800">
           <h2 className="text-2xl font-semibold text-center mb-6 rounded  	">
-            Login
+            Entrar
           </h2>
           <form onSubmit={handleSubmit}>
             <div className="mb-4">
-              <label className="block text-gray-700">Username/Email:</label>
+              <label className="block text-gray-700">Usuário:</label>
               <input
                 type="text"
                 value={username}
@@ -59,7 +59,7 @@ function Login() {
               />
             </div>
             <div className="mb-4">
-              <label className="block text-gray-700">Password:</label>
+              <label className="block text-gray-700">Senha:</label>
               <input
                 type="password"
                 value={password}
@@ -74,7 +74,7 @@ function Login() {
               type="submit"
               className="w-full bg-blue-500 text-white py-2 px-4 mt-2 rounded hover:bg-blue-600 focus:outline-none focus:bg-blue-600"
             >
-              Login
+              Entrar
             </button>
           </form>
         </div>

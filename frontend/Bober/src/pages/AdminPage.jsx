@@ -4,10 +4,16 @@ import logo from '../assets/logo.png'
 import API_BASE_URL from '../config';
 
 function AdminPage() {
+  const today = new Date();
+
+  const currentYear = today.getFullYear();
+  const currentMonth = today.getMonth() + 1; // getMonth is 0-indexed, add 1 for 1-indexed
+  const currentDay = today.getDate();
+
   const [forms, setForms] = useState([])
-  const [year, setYear] = useState('2024')
-  const [month, setMonth] = useState('')
-  const [day, setDay] = useState('')
+  const [year, setYear] = useState(currentYear)
+  const [month, setMonth] = useState(currentMonth)
+  const [day, setDay] = useState(currentDay)
   const [expandedFormId, setExpandedFormId] = useState(null)
   const [expandedGroup, setExpandedGroup] = useState(null)
   const [totalSum, setTotalSum] = useState(0)
@@ -15,6 +21,9 @@ function AdminPage() {
   const [digitalSum, setDigitalSum] = useState(0)
   const [expenses, setExpenses] = useState([])
   const [expenseSum, setExpenseSum] = useState(0)
+
+
+
 
   const groupByProcedure = (formData) => {
     return formData.reduce((acc, item) => {
@@ -31,7 +40,7 @@ function AdminPage() {
     if (year && month && day) {
       fetchExpenses()
     }
-  }, [year, month, day]) // This will refetch expenses whenever the date filters change
+  }, [year, month, day])
 
   function calculateTotalPrice(form) {
     const moneyAmount = parseFloat(form.moneyAmount) || 0
@@ -139,6 +148,30 @@ function AdminPage() {
     }
   }
 
+  const handleDelete = async (formId) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/admin/forms/${formId}`, {
+        method: 'DELETE'
+      });
+      if (!response.ok) throw new Error('Failed to delete the form.');
+
+      // Update local state to reflect the change
+      setForms(forms => {
+        const updatedForms = { ...forms };
+        for (const procedure in updatedForms) {
+          updatedForms[procedure] = updatedForms[procedure].filter(form => form._id !== formId);
+        }
+        return updatedForms;
+      });
+
+      alert('Form deleted successfully'); // Add confirmation alert
+    } catch (error) {
+      console.error('Error deleting form:', error);
+      alert(error.message); // Show error message to the user
+    }
+  };
+
+
   return (
     <div className="!bg-slate-800">
       <Header />
@@ -146,9 +179,7 @@ function AdminPage() {
         <img src={logo} alt="Logo" className="w-48" />
       </div>
       <div className="flex flex-col items-center justify-center pt-2 !bg-slate-800 font-sans text-lg adminpage ">
-        {/* Filters */}
         <div className="flex flex-wrap justify-between mb-4 w-full max-w-4xl">
-          {/* Year Selection */}
           <div>
             <label htmlFor="yearSelect" className="block text-white">
               Ano
@@ -178,7 +209,9 @@ function AdminPage() {
             </label>
             <select
               id="monthSelect"
+
               value={month}
+
               onChange={(e) => setMonth(e.target.value)}
               className="form-select mt-1 block w-full bg-gray-100"
             >
@@ -246,11 +279,9 @@ function AdminPage() {
                   <tbody className="text-white text-sm font-light">
                     {entries
                       .slice() // Creates a shallow copy to avoid mutating the original array during sorting
-                      .sort((a, b) =>
-                        a.pacienteNome.localeCompare(b.pacienteNome)
-                      ) // Sorts alphabetically
+                      .sort((a, b) => a.pacienteNome.localeCompare(b.pacienteNome)) // Sorts alphabetically
                       .map((form, index) => (
-                        <tr key={index} className="border">
+                        <tr key={index} className="border text-lg">
                           <td className="py-3 px-6  text-left">
                             {form.pacienteNome}
                           </td>
@@ -261,9 +292,15 @@ function AdminPage() {
                           <td className="py-3 px-6 text-left">
                             {form.payments.join(', ')}
                           </td>
+                          <td className="py-3 px-6 text-left">
+                            <button
+                              onClick={() => handleDelete(form._id)}
+                              className="text-white p-1 rounded bg-red-500 hover:text-red-700">Apagar</button>
+                          </td>
                         </tr>
                       ))}
                   </tbody>
+
                 </table>
               )}
             </div>
