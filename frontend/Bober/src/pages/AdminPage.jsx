@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react'
 import Header from '../components/Header'
 import logo from '../assets/logo.png'
-import API_BASE_URL from '../config';
 
 function AdminPage() {
-  const today = new Date();
+  const today = new Date()
 
-  const currentYear = today.getFullYear();
-  const currentMonth = today.getMonth() + 1; // getMonth is 0-indexed, add 1 for 1-indexed
-  const currentDay = today.getDate();
+  const currentYear = today.getFullYear()
+  const currentMonth = today.getMonth() + 1 // getMonth is 0-indexed, add 1 for 1-indexed
+  const currentDay = today.getDate()
 
   const [forms, setForms] = useState([])
   const [year, setYear] = useState(currentYear)
@@ -21,9 +20,6 @@ function AdminPage() {
   const [digitalSum, setDigitalSum] = useState(0)
   const [expenses, setExpenses] = useState([])
   const [expenseSum, setExpenseSum] = useState(0)
-
-
-
 
   const groupByProcedure = (formData) => {
     return formData.reduce((acc, item) => {
@@ -86,7 +82,8 @@ function AdminPage() {
     const queryString = `year=${year}&month=${month}&day=${day}`
 
     try {
-      const response = await fetch(`${API_BASE_URL}/admin/forms?${queryString}`
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/admin/forms?${queryString}`
       )
       if (response.ok) {
         const formData = await response.json()
@@ -104,7 +101,7 @@ function AdminPage() {
           const creditCardAmount = parseFloat(form.creditCardAmount) || 0
 
           total += moneyAmount + pixAmount + creditCardAmount
-          cash += moneyAmount
+          cash -= expenseSum
           digital += pixAmount + creditCardAmount
         })
 
@@ -130,7 +127,8 @@ function AdminPage() {
     const paddedDay = day.toString().padStart(2, '0')
     const queryString = `year=${year}&month=${paddedMonth}&day=${paddedDay}`
     try {
-      const response = await fetch(`${API_BASE_URL}/admin/expenses?${queryString}`
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/admin/expenses?${queryString}`
       )
       if (response.ok) {
         const expenseData = await response.json()
@@ -150,27 +148,31 @@ function AdminPage() {
 
   const handleDelete = async (formId) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/admin/forms/${formId}`, {
-        method: 'DELETE'
-      });
-      if (!response.ok) throw new Error('Failed to delete the form.');
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/admin/forms/${formId}`,
+        {
+          method: 'DELETE',
+        }
+      )
+      if (!response.ok) throw new Error('Failed to delete the form.')
 
       // Update local state to reflect the change
-      setForms(forms => {
-        const updatedForms = { ...forms };
+      setForms((forms) => {
+        const updatedForms = { ...forms }
         for (const procedure in updatedForms) {
-          updatedForms[procedure] = updatedForms[procedure].filter(form => form._id !== formId);
+          updatedForms[procedure] = updatedForms[procedure].filter(
+            (form) => form._id !== formId
+          )
         }
-        return updatedForms;
-      });
+        return updatedForms
+      })
 
-      alert('Form deleted successfully'); // Add confirmation alert
+      alert('Form deleted successfully') // Add confirmation alert
     } catch (error) {
-      console.error('Error deleting form:', error);
-      alert(error.message); // Show error message to the user
+      console.error('Error deleting form:', error)
+      alert(error.message) // Show error message to the user
     }
-  };
-
+  }
 
   return (
     <div className="!bg-slate-800">
@@ -209,9 +211,7 @@ function AdminPage() {
             </label>
             <select
               id="monthSelect"
-
               value={month}
-
               onChange={(e) => setMonth(e.target.value)}
               className="form-select mt-1 block w-full bg-gray-100"
             >
@@ -279,7 +279,9 @@ function AdminPage() {
                   <tbody className="text-white text-sm font-light">
                     {entries
                       .slice() // Creates a shallow copy to avoid mutating the original array during sorting
-                      .sort((a, b) => a.pacienteNome.localeCompare(b.pacienteNome)) // Sorts alphabetically
+                      .sort((a, b) =>
+                        a.pacienteNome.localeCompare(b.pacienteNome)
+                      ) // Sorts alphabetically
                       .map((form, index) => (
                         <tr key={index} className="border text-lg">
                           <td className="py-3 px-6  text-left">
@@ -295,12 +297,14 @@ function AdminPage() {
                           <td className="py-3 px-6 text-left">
                             <button
                               onClick={() => handleDelete(form._id)}
-                              className="text-white p-1 rounded bg-red-500 hover:text-red-700">Apagar</button>
+                              className="text-white p-1 rounded bg-red-500 hover:text-red-700"
+                            >
+                              Apagar
+                            </button>
                           </td>
                         </tr>
                       ))}
                   </tbody>
-
                 </table>
               )}
             </div>

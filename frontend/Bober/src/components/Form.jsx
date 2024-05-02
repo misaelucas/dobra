@@ -3,23 +3,34 @@ import { useForm } from 'react-hook-form'
 import moment from 'moment-timezone'
 import Header from './Header'
 
-import API_BASE_URL from '../config';
-
 function Form() {
-  const { register, handleSubmit, watch, setValue, reset, formState: { errors } } = useForm();
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    reset,
+    formState: { errors },
+  } = useForm()
 
   const [payments, setPayments] = useState([])
   const currentDate = new Date().toISOString().split('T')[0]
 
   const onSubmit = async (data) => {
+    // First, ensure at least one payment method is selected
+    if (payments.length === 0) {
+      alert('Por favor, escolha pelo menos um método de pagamento!')
+      return // Stop submission if no payment method is selected
+    }
+
     if (!window.confirm('Tem certeza que quer adicionar essa entrada?')) {
-      return; // Stop submission if not confirmed
+      return // Stop submission if not confirmed
     }
 
     const procedureValue =
       data.procedureType === 'especialidade'
         ? data.especialidadeMedico
-        : data.exame;
+        : data.exame
 
     let submissionData = {
       pacienteNome: data.pacienteNome,
@@ -33,37 +44,29 @@ function Form() {
       moneyAmount: data.moneyAmount || '',
       creditCardAmount: data.creditCardAmount || '',
       pixAmount: data.pixAmount || '',
-    };
+    }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/submit-form`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(submissionData),
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/submit-form`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(submissionData),
+        }
+      )
 
       if (response.ok) {
-        alert('Entrada adicionada!');
-        // Reset all form fields to initial state
-        reset({
-          pacienteNome: '',
-          observacao: '',
-          moneyAmount: '',
-          creditCardAmount: '',
-          pixAmount: '',
-          especialidadeMedico: '',
-          exame: '',
-        });
-        // Reset custom states
-        setPayments([]);
+        alert('Entrada adicionada!')
+        reset() // Reset all form fields
+        setPayments([]) // Clear payments array
       } else {
-        console.error('Erro em enviar o formulário:', response.statusText);
+        console.error('Erro em enviar o formulário:', response.statusText)
       }
     } catch (error) {
-      console.error('Error submitting form:', error.message);
+      console.error('Error submitting form:', error.message)
     }
   }
-
 
   const handlePaymentChange = (event) => {
     const { value, checked } = event.target
@@ -97,7 +100,7 @@ function Form() {
                 required: 'Você precisa preencher esse campo.',
                 minLength: {
                   value: 8,
-                  message: 'O nome é muito pequeno... :P',
+                  message: 'O nome é muito pequeno.',
                 },
               })}
               type="text"
@@ -166,7 +169,9 @@ function Form() {
                 {...register('exame')}
                 className="bg-gray-100 form-select mt-1 block w-full"
               >
-                <option value="Aplicação com Glicose">Aplicação com Glicose</option>
+                <option value="Aplicação com Glicose">
+                  Aplicação com Glicose
+                </option>
                 <option value="Aplicação de espuma">Aplicação de Espuma</option>
                 <option value="ASO">ASO</option>
                 <option value="Atestado">Atestado</option>
@@ -185,9 +190,13 @@ function Form() {
                 <option value="Mapa">Mapa</option>
                 <option value="Peniscopia">Peniscopia</option>
                 <option value="Perfil Lipídico">Perfil Lipídico</option>
-                <option value="Procedimento Dermato">Procedimento Dermato</option>
+                <option value="Procedimento Dermato">
+                  Procedimento Dermato
+                </option>
                 <option value="Procedimento Gineco">Procedimento Gineco</option>
-                <option value="Procedimento Urologista">Procedimento Urologista</option>
+                <option value="Procedimento Urologista">
+                  Procedimento Urologista
+                </option>
                 <option value="Raio-x">Raio-X</option>
                 <option value="USG ABD Inferior">USG ABD Inferior</option>
                 <option value="USG ABD Superior">USG ABD Superior</option>
@@ -198,9 +207,12 @@ function Form() {
                 <option value="USG MMII">USG MMII</option>
                 <option value="USG Pélvica">USG Pélvica</option>
                 <option value="USG Próstata">USG Próstata</option>
-                <option value="USG Rins e Vias Urinárias">USG Rins e Vias Urinárias</option>
-                <option value="Videolaparoscopia/Vídeonasolaringoscopia">Videolaparoscopia/Vídeonasolaringoscopia</option>
-
+                <option value="USG Rins e Vias Urinárias">
+                  USG Rins e Vias Urinárias
+                </option>
+                <option value="Videolaparoscopia/Vídeonasolaringoscopia">
+                  Videolaparoscopia/Vídeonasolaringoscopia
+                </option>
               </select>
             </div>
           ) : null}
@@ -217,6 +229,7 @@ function Form() {
                   {...register('paymentMethod', {
                     validate: () => payments.length > 0,
                   })} // Custom validation for at least one checkbox
+                  checked={payments.includes('Pix')} // Ensure the checkbox is controlled
                   onChange={handlePaymentChange}
                   className="form-checkbox"
                 />
@@ -225,9 +238,11 @@ function Form() {
               <label className="inline-flex items-center ml-6">
                 <input
                   type="checkbox"
-                  {...register('payments')}
                   value="Dinheiro"
-                  className="form-checkbox"
+                  {...register('paymentMethod', {
+                    validate: () => payments.length > 0,
+                  })}
+                  checked={payments.includes('Dinheiro')} // Ensure the checkbox is controlled
                   onChange={handlePaymentChange}
                 />
                 <span className="ml-2">Dinheiro</span>
@@ -235,9 +250,12 @@ function Form() {
               <label className="inline-flex items-center ml-6">
                 <input
                   type="checkbox"
-                  {...register('payments')}
                   value="Cartão de Crédito"
+                  {...register('paymentMethod', {
+                    validate: () => payments.length > 0,
+                  })}
                   className="form-checkbox"
+                  checked={payments.includes('Cartão de Crédito')} // Ensure the checkbox is controlled
                   onChange={handlePaymentChange}
                 />
                 <span className="ml-2">Cartão de Crédito</span>
@@ -251,7 +269,7 @@ function Form() {
               </label>
               <input
                 {...register('pixAmount')}
-                type="text"
+                type="number"
                 id="pixAmount"
                 className="pl-2 form-input mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50"
               />
@@ -264,7 +282,7 @@ function Form() {
               </label>
               <input
                 {...register('moneyAmount')}
-                type="text"
+                type="number"
                 id="moneyAmount"
                 className="pl-2 form-input mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50"
               />
@@ -277,7 +295,7 @@ function Form() {
               </label>
               <input
                 {...register('creditCardAmount')}
-                type="text"
+                type="number"
                 id="creditCardAmount"
                 className="pl-2 form-input mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50"
               />

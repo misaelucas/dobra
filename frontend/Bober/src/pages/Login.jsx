@@ -2,7 +2,6 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppContext } from '../contexts/AppContext'
 import Header from '../components/Header'
-import API_BASE_URL from '../config';
 
 function Login() {
   const [username, setUsername] = useState('')
@@ -15,13 +14,16 @@ function Login() {
     e.preventDefault()
 
     try {
-      const response = await fetch(`${API_BASE_URL}/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, password }),
-      })
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/login`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ username, password }),
+        }
+      )
 
       if (response.ok) {
         const data = await response.json()
@@ -29,9 +31,7 @@ function Login() {
         navigateTo('/form') // Redirect user to form page
       } else {
         // Handle login failure
-        setErrorMessage(
-          ' Falhou, veja sua senha/usuário.'
-        )
+        setErrorMessage(' Falhou, veja sua senha/usuário.')
       }
     } catch (error) {
       console.error('Error during login:', error)

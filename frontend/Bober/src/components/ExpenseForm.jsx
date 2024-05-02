@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import Header from './Header'
 import logo from '../assets/logo.png'
-import API_BASE_URL from '../config';
 
 function ExpenseForm() {
   const [amount, setAmount] = useState('')
@@ -29,11 +28,14 @@ function ExpenseForm() {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/admin/expenses`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(expenseData),
-      })
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/admin/expenses`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(expenseData),
+        }
+      )
 
       if (response.ok) {
         alert('Despesa adicionada com sucesso!')

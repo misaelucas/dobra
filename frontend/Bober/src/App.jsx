@@ -2,7 +2,6 @@ import React from 'react';
 import { useAppContext } from './contexts/AppContext'; // Import your context
 import './App.css';
 import Form from './components/Form';
-import Header from './components/Header';
 import Login from './pages/Login'; // Hypothetical login form component
 
 function App() {
