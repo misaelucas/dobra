@@ -48,7 +48,7 @@ function AdminPage() {
   useEffect(() => {
     fetchForms()
     fetchExpenses()
-  }, [selectedDate])
+  }, [year, month, day])
 
   function calculateTotalPrice(form) {
     const moneyAmount = parseFloat(form.moneyAmount) || 0
