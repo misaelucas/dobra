@@ -1,9 +1,14 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useContext } from 'react'
 import Header from '../components/Header'
 import logo from '../assets/logo.png'
+import { useAppContext } from '../contexts/AppContext' // Make sure the path is correct
 
 function AdminPage() {
-  const today = new Date()
+  const { userRole } = useAppContext()
+  const timeZone = 'America/Sao_Paulo' // This matches GMT-3
+  const today = new Date(new Date().toLocaleString('en-US', { timeZone }))
+  const todayFormatted = today.toISOString().split('T')[0] // Format to YYYY-MM-DD
+  const [selectedDate, setSelectedDate] = useState(todayFormatted)
 
   const currentYear = today.getFullYear()
   const currentMonth = today.getMonth() + 1 // getMonth is 0-indexed, add 1 for 1-indexed
@@ -13,7 +18,6 @@ function AdminPage() {
   const [year, setYear] = useState(currentYear)
   const [month, setMonth] = useState(currentMonth)
   const [day, setDay] = useState(currentDay)
-  const [expandedFormId, setExpandedFormId] = useState(null)
   const [expandedGroup, setExpandedGroup] = useState(null)
   const [totalSum, setTotalSum] = useState(0)
   const [cashSum, setCashSum] = useState(0)
@@ -33,10 +37,18 @@ function AdminPage() {
   }
 
   useEffect(() => {
-    if (year && month && day) {
-      fetchExpenses()
+    if (userRole === 'receptionist') {
+      // Lock the date to today for receptionists
+      setYear(today.getFullYear())
+      setMonth(today.getMonth() + 1)
+      setDay(today.getDate())
     }
-  }, [year, month, day])
+  }, [userRole, today])
+  // Additional useEffect for fetching forms and expenses when date changes
+  useEffect(() => {
+    fetchForms()
+    fetchExpenses()
+  }, [selectedDate])
 
   function calculateTotalPrice(form) {
     const moneyAmount = parseFloat(form.moneyAmount) || 0
@@ -101,7 +113,7 @@ function AdminPage() {
           const creditCardAmount = parseFloat(form.creditCardAmount) || 0
 
           total += moneyAmount + pixAmount + creditCardAmount
-          cash -= expenseSum
+          cash += moneyAmount
           digital += pixAmount + creditCardAmount
         })
 
@@ -180,7 +192,7 @@ function AdminPage() {
       <div className="flex justify-center mt-4">
         <img src={logo} alt="Logo" className="w-48" />
       </div>
-      <div className="flex flex-col items-center justify-center pt-2 !bg-slate-800 font-sans text-lg adminpage ">
+      <div className="flex flex-col items-center justify-center pt-2 !bg-slate-800 font-sans text-lg adminpage">
         <div className="flex flex-wrap justify-between mb-4 w-full max-w-4xl">
           <div>
             <label htmlFor="yearSelect" className="block text-white">
@@ -191,20 +203,15 @@ function AdminPage() {
               value={year}
               onChange={(e) => setYear(e.target.value)}
               className="form-select mt-1 block w-full bg-gray-100"
+              disabled={userRole === 'receptionist'}
             >
-              <option value="">Escolher Ano</option>
-              {Array.from(
-                new Array(5),
-                (val, index) => new Date().getFullYear() - index
-              ).map((year, i) => (
-                <option key={i} value={year}>
-                  {year}
+              {Array.from({ length: 5 }, (_, i) => (
+                <option key={i} value={today.getFullYear() - i}>
+                  {today.getFullYear() - i}
                 </option>
               ))}
             </select>
           </div>
-
-          {/* Month Selection */}
           <div>
             <label htmlFor="monthSelect" className="block text-white">
               Mês
@@ -214,17 +221,17 @@ function AdminPage() {
               value={month}
               onChange={(e) => setMonth(e.target.value)}
               className="form-select mt-1 block w-full bg-gray-100"
+              disabled={userRole === 'receptionist'}
             >
-              <option value="">Selecionar Mês</option>
               {Array.from({ length: 12 }, (_, i) => (
                 <option key={i + 1} value={i + 1}>
-                  {new Date(0, i).toLocaleString('default', { month: 'long' })}
+                  {new Date(0, i).toLocaleString('default', {
+                    month: 'long',
+                  })}
                 </option>
               ))}
             </select>
           </div>
-
-          {/* Day Selection */}
           <div>
             <label htmlFor="daySelect" className="block text-white">
               Dia
@@ -234,8 +241,8 @@ function AdminPage() {
               value={day}
               onChange={(e) => setDay(e.target.value)}
               className="form-select mt-1 block w-full bg-gray-100"
+              disabled={userRole === 'receptionist'}
             >
-              <option value="">Escolher Dia</option>
               {Array.from({ length: 31 }, (_, i) => (
                 <option key={i + 1} value={i + 1}>
                   {i + 1}
@@ -245,11 +252,10 @@ function AdminPage() {
           </div>
         </div>
         <button
-          onClick={() => fetchForms(month, year, day)}
-          className="mb-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700
-      focus:outline-none"
+          onClick={fetchForms}
+          className="mb-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 focus:outline-none"
         >
-          PROCURAR
+          Search
         </button>
 
         <div className="w-full max-w-4xl ">
@@ -312,7 +318,7 @@ function AdminPage() {
           <div className="flex w-[500px] bg-slate-900 ring-2  !ring-green-600/50 !ring-offset-slate-800 ring-offset-4  text-white rounded-lg shadow mt-4 mb-4 w-full">
             <div className="w-full rounded p-2 flex flex-col">
               <h3 className="text-lg mb-1 ">
-                Valor Total com despesas inclusas:
+                Valor total com despesas inclusas:
               </h3>
               <p>R${(totalSum - expenseSum).toFixed(2)}</p>
               <div className="w-full rounded ">

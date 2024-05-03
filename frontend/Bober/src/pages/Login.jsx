@@ -30,8 +30,8 @@ function Login() {
         login(data.token) // Save the login token using context (if your context handles this)
         navigateTo('/form') // Redirect user to form page
       } else {
-        // Handle login failure
-        setErrorMessage(' Falhou, veja sua senha/usuário.')
+        const errorData = await response.json() // Attempt to read the error message if provided
+        setErrorMessage(errorData.message || 'Falhou, veja sua senha/usuário.')
       }
     } catch (error) {
       console.error('Error during login:', error)
