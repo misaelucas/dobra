@@ -1,6 +1,3 @@
-const mongoose = require("mongoose");
-
-// Define the schema for your form
 const formSchema = new mongoose.Schema({
   pacienteNome: {
     type: String,
@@ -16,9 +13,8 @@ const formSchema = new mongoose.Schema({
   },
   observacao: {
     type: String,
-    required: true,
   },
-  exame: {
+  procedimento: {
     type: String,
     required: true,
   },
@@ -26,9 +22,12 @@ const formSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  addedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
 });
 
-// Create a model for your form using the schema
 const Form = mongoose.model("Form", formSchema);
-
 module.exports = Form;

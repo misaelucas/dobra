@@ -99,6 +99,7 @@ function AdminPage() {
       )
       if (response.ok) {
         const formData = await response.json()
+        console.log('Received form data:', formData) // Check what data you received
 
         // Group data by procedures
         const groupedData = groupByProcedure(formData)
@@ -255,66 +256,72 @@ function AdminPage() {
           onClick={fetchForms}
           className="mb-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 focus:outline-none"
         >
-          Search
+          Procurar
         </button>
 
         <div className="w-full max-w-4xl ">
-          {Object.entries(forms).map(([procedure, entries]) => (
-            <div key={procedure}>
-              <button
-                onClick={() =>
-                  setExpandedGroup(
-                    expandedGroup === procedure ? null : procedure
-                  )
-                }
-                className="py-2 w-full text-left px-2 mt-4 bg-green-400 text-black rounded"
-              >
-                {`${procedure} (${entries.length})`} -{' '}
-                {calculateTotalPriceForProcedure(procedure)}
-              </button>
+          {Object.entries(forms)
+            .sort((a, b) => a[0].localeCompare(b[0])) // Sort by procedure name which is `a[0]` and `b[0]`
+            .map(([procedure, entries]) => (
+              <div key={procedure}>
+                <button
+                  onClick={() =>
+                    setExpandedGroup(
+                      expandedGroup === procedure ? null : procedure
+                    )
+                  }
+                  className="py-2 w-full text-left px-2 mt-4 bg-green-400 text-black rounded"
+                >
+                  {`${procedure} (${entries.length})`} - R$
+                  {calculateTotalPriceForProcedure(procedure)}
+                </button>
 
-              {expandedGroup === procedure && (
-                <table className="table-auto mt-1 bg-slate-900  mt-2 rounded w-full">
-                  <thead>
-                    <tr className=" text-white uppercase   text-sm leading-normal bg-slate-900">
-                      <th className="py-3 px-6 text-left ">Nome</th>
-                      <th className="py-3 px-6 text-left ">Preço</th>
-                      <th className="py-3 px-6 text-left ">Pagamento</th>
-                    </tr>
-                  </thead>
-                  <tbody className="text-white text-sm font-light">
-                    {entries
-                      .slice() // Creates a shallow copy to avoid mutating the original array during sorting
-                      .sort((a, b) =>
-                        a.pacienteNome.localeCompare(b.pacienteNome)
-                      ) // Sorts alphabetically
-                      .map((form, index) => (
-                        <tr key={index} className="border text-lg">
-                          <td className="py-3 px-6  text-left">
-                            {form.pacienteNome}
-                          </td>
-                          <td className="py-3 px-6 text-left">
-                            {/* Dynamically calculate and display the price */}
-                            {`${calculateTotalPrice(form)}${renderPaymentDetails(form)}`}
-                          </td>
-                          <td className="py-3 px-6 text-left">
-                            {form.payments.join(', ')}
-                          </td>
-                          <td className="py-3 px-6 text-left">
-                            <button
-                              onClick={() => handleDelete(form._id)}
-                              className="text-white p-1 rounded bg-red-500 hover:text-red-700"
-                            >
-                              Apagar
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
-          ))}
+                {expandedGroup === procedure && (
+                  <table className="table-auto mt-1 bg-slate-900 mt-2 rounded w-full">
+                    <thead>
+                      <tr className="text-white uppercase text-sm leading-normal bg-slate-900">
+                        <th className="py-3 px-6 text-left">Nome</th>
+                        <th className="py-3 px-6 text-left">Preço</th>
+                        <th className="py-3 px-6 text-left">Pagamento</th>
+                        <th className="py-3 px-6 text-left">Usuário</th>
+                      </tr>
+                    </thead>
+                    <tbody className="text-white text-sm font-light">
+                      {entries
+                        .slice() // Creates a shallow copy to avoid mutating the original array during sorting
+                        .sort((a, b) =>
+                          a.pacienteNome.localeCompare(b.pacienteNome)
+                        ) // Sorts alphabetically by patient name within each procedure group
+                        .map((form, index) => (
+                          <tr key={index} className="border text-lg">
+                            <td className="py-3 px-6 text-left">
+                              {form.pacienteNome}
+                            </td>
+                            <td className="py-3 px-6 text-left">
+                              {`${calculateTotalPrice(form)}${renderPaymentDetails(form)}`}
+                            </td>
+                            <td className="py-3 px-6 text-left">
+                              {form.payments.join(', ')}
+                            </td>
+                            <td className="py-3 px-6 text-left">
+                              {form.addedBy}
+                            </td>
+                            <td className="py-3 px-6 text-left">
+                              <button
+                                onClick={() => handleDelete(form._id)}
+                                className="text-white p-1 rounded bg-red-500 hover:text-red-700"
+                              >
+                                Apagar
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            ))}
+
           <div className="flex w-[500px] bg-slate-900 ring-2  !ring-green-600/50 !ring-offset-slate-800 ring-offset-4  text-white rounded-lg shadow mt-4 mb-4 w-full">
             <div className="w-full rounded p-2 flex flex-col">
               <h3 className="text-lg mb-1 ">

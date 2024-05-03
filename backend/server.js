@@ -3,7 +3,7 @@ const cors = require("cors");
 
 require("dotenv").config();
 const { MongoClient } = require("mongodb");
-const { ObjectId } = require('mongodb');
+const { ObjectId } = require("mongodb");
 const bcrypt = require("bcrypt");
 const moment = require("moment-timezone");
 const jwt = require("jsonwebtoken");
@@ -13,7 +13,6 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(cors());
-
 
 let dbClient; // Global variable to hold the client
 
@@ -58,22 +57,36 @@ app.post("/login", async (req, res) => {
     }
   } catch (error) {
     console.error("Error during login:", error);
-    res.status(500).json({ error: "Internal server error", details: error.message });
+    res
+      .status(500)
+      .json({ error: "Internal server error", details: error.message });
   }
-
 });
 
 app.post("/submit-form", async (req, res) => {
-  const formData = req.body;
+  const {
+    pacienteNome,
+    date,
+    payments,
+    observacao,
+    procedimento,
+    moneyAmount,
+    creditCardAmount,
+    pixAmount,
+    addedBy,
+  } = req.body;
 
-  // Get the current time in Sao Paulo timezone
-  const now = moment.tz("America/Sao_Paulo");
-
-  // Subtract three hours to adjust for UTC-3 timezone
-  const adjustedDate = now.subtract(3, "hours").toDate();
-
-  // Update the formData with the adjusted date
-  formData.date = adjustedDate;
+  const formData = {
+    pacienteNome,
+    date: new Date(date), // Ensuring date is converted correctly
+    payments,
+    observacao,
+    procedimento,
+    moneyAmount,
+    creditCardAmount: creditCardAmount || 0, // Convert to 0 if empty
+    pixAmount: pixAmount || 0, // Convert to 0 if empty
+    addedBy: new ObjectId(addedBy), // Correct use of ObjectId constructor
+  };
 
   try {
     const collection = dbClient.db(process.env.DB_NAME).collection("entradas");
@@ -84,7 +97,6 @@ app.post("/submit-form", async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
-
 
 app.get("/admin/forms", async (req, res) => {
   const { year, month, day } = req.query;
@@ -100,11 +112,42 @@ app.get("/admin/forms", async (req, res) => {
     const query = {
       date: { $gte: startOfDay.toDate(), $lt: endOfDay.toDate() },
     };
-    const forms = await collection.find(query).toArray();
+
+    // Adjusting to include user details using aggregation framework if user IDs are stored in addedBy
+    const forms = await collection
+      .aggregate([
+        { $match: query },
+        {
+          $lookup: {
+            from: "users", // Assuming 'users' is the name of your user collection
+            localField: "addedBy", // Field in forms collection
+            foreignField: "_id", // Field in users collection
+            as: "addedByDetails", // Array containing joined user documents
+          },
+        },
+        {
+          $unwind: "$addedByDetails", // Unwind if you are sure every form has one user
+        },
+        {
+          $project: {
+            // Defining which fields to include
+            pacienteNome: 1,
+            date: 1,
+            payments: 1,
+            observacao: 1,
+            procedimento: 1,
+            moneyAmount: 1,
+            addedBy: "$addedByDetails.username", // Include other user details as needed
+          },
+        },
+      ])
+      .toArray();
+
     const formattedForms = forms.map((form) => ({
       ...form,
-      date: moment(form.date).format("YYYY-MM-DD HH:mm:ss"),
+      date: moment(form.date).format("YYYY-MM-DD HH:mm:ss"), // Formatting the date for readability
     }));
+
     res.status(200).json(formattedForms);
   } catch (error) {
     console.error("Failed to fetch forms:", error);
@@ -141,7 +184,6 @@ app.get("/admin/expenses", async (req, res) => {
   }
 });
 
-
 app.delete("/admin/forms/:id", async (req, res) => {
   const { id } = req.params;
   const collection = dbClient.db(process.env.DB_NAME).collection("entradas");
@@ -158,10 +200,9 @@ app.delete("/admin/forms/:id", async (req, res) => {
   }
 });
 
-
 async function startServer() {
   await connectDB(); // Connect to DB before starting the server
-  app.listen(PORT, '0.0.0.0', () => {
+  app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server is running on port ${PORT}`);
   });
 }

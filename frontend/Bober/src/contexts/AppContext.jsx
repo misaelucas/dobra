@@ -6,6 +6,7 @@ export const AppContext = createContext()
 export const AppProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [userRole, setUserRole] = useState(null) // Define the userRole state
+  const [userId, setUserId] = useState(null) // Add user ID state
   const [loading, setLoading] = useState(true) // Define the loading state
 
   const login = (token) => {
@@ -14,10 +15,12 @@ export const AppProvider = ({ children }) => {
       const decoded = jwtDecode(token)
       setIsAuthenticated(true)
       setUserRole(decoded.role)
+      setUserId(decoded.userId) // Assuming the token has a userId field
     } catch (error) {
       console.error('Error decoding token:', error)
       setIsAuthenticated(false)
       setUserRole(null)
+      setUserId(null)
     }
   }
 
@@ -25,7 +28,9 @@ export const AppProvider = ({ children }) => {
     localStorage.removeItem('token')
     setIsAuthenticated(false)
     setUserRole(null)
+    setUserId(null)
   }
+
   useEffect(() => {
     const token = localStorage.getItem('token')
     if (token) {
@@ -33,10 +38,12 @@ export const AppProvider = ({ children }) => {
         const decoded = jwtDecode(token)
         setIsAuthenticated(true)
         setUserRole(decoded.role)
+        setUserId(decoded.userId) // Update userId state
       } catch (error) {
         console.error('Failed to decode JWT:', error)
         setIsAuthenticated(false)
         setUserRole(null)
+        setUserId(null)
       }
     }
     setLoading(false)
@@ -49,6 +56,8 @@ export const AppProvider = ({ children }) => {
         setIsAuthenticated,
         userRole,
         setUserRole,
+        userId,
+        setUserId,
         login,
         logout,
         loading,

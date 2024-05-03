@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import moment from 'moment-timezone'
 import Header from './Header'
+import { useAppContext } from '../contexts/AppContext' // Correct path to your context
 
 function Form() {
   const {
@@ -15,6 +16,7 @@ function Form() {
 
   const [payments, setPayments] = useState([])
   const currentDate = new Date().toISOString().split('T')[0]
+  const { userId } = useAppContext()
 
   const onSubmit = async (data) => {
     // First, ensure at least one payment method is selected
@@ -44,6 +46,7 @@ function Form() {
       moneyAmount: data.moneyAmount || '',
       creditCardAmount: data.creditCardAmount || '',
       pixAmount: data.pixAmount || '',
+      addedBy: userId,
     }
 
     try {
