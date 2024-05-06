@@ -108,7 +108,7 @@ app.get("/admin/forms", async (req, res) => {
   const endOfDay = moment(startOfDay).add(1, "day");
 
   try {
-    const collection = dbClient.db("BOBERKURWA").collection("entradas");
+    const collection = dbClient.db(process.env.DB_NAME).collection("entradas");
     const query = {
       date: { $gte: startOfDay.toDate(), $lt: endOfDay.toDate() },
     };
@@ -137,6 +137,8 @@ app.get("/admin/forms", async (req, res) => {
             observacao: 1,
             procedimento: 1,
             moneyAmount: 1,
+            creditCardAmount: 1,
+            pixAmount: 1,
             addedBy: "$addedByDetails.username", // Include other user details as needed
           },
         },
@@ -158,7 +160,9 @@ app.get("/admin/forms", async (req, res) => {
 app.post("/admin/expenses", async (req, res) => {
   const expenseData = req.body;
   try {
-    const expensesCollection = dbClient.db("BOBERKURWA").collection("expenses");
+    const expensesCollection = dbClient
+      .db(process.env.DB_NAME)
+      .collection("expenses");
     await expensesCollection.insertOne(expenseData);
     res.status(201).json({ message: "Despesa adicionada com sucesso" });
   } catch (error) {
@@ -174,7 +178,9 @@ app.get("/admin/expenses", async (req, res) => {
     "0"
   )}`;
   try {
-    const expensesCollection = dbClient.db("BOBERKURWA").collection("expenses");
+    const expensesCollection = dbClient
+      .db(process.env.DB_NAME)
+      .collection("expenses");
     const query = { date: formattedDate };
     const expenses = await expensesCollection.find(query).toArray();
     res.status(200).json(expenses);

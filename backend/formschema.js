@@ -1,3 +1,5 @@
+const { Int32 } = require("mongodb");
+
 const formSchema = new mongoose.Schema({
   pacienteNome: {
     type: String,
@@ -19,7 +21,15 @@ const formSchema = new mongoose.Schema({
     required: true,
   },
   moneyAmount: {
-    type: String,
+    type: Number,
+    required: true,
+  },
+  creditCardAmount: {
+    type: Number,
+    required: true,
+  },
+  pixAmount: {
+    type: Number,
     required: true,
   },
   addedBy: {
