@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import moment from 'moment-timezone'
 import Header from './Header'
-import { useAppContext } from '../contexts/AppContext' // Correct path to your context
+import { useAppContext } from '../contexts/AppContext'
 
 function Form() {
   const {
@@ -191,6 +191,7 @@ function Form() {
                 <option value="Impedanciometria">Impedanciometria</option>
                 <option value="Lab">LAB</option>
                 <option value="Mapa">Mapa</option>
+                <option value="Mapa">Medicação</option>
                 <option value="Peniscopia">Peniscopia</option>
                 <option value="Perfil Lipídico">Perfil Lipídico</option>
                 <option value="Procedimento Dermato">

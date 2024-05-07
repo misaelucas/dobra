@@ -206,6 +206,26 @@ app.delete("/admin/forms/:id", async (req, res) => {
   }
 });
 
+app.delete("/admin/expenses/:id", async (req, res) => {
+  const { id } = req.params;
+  const expensesCollection = dbClient
+    .db(process.env.DB_NAME)
+    .collection("expenses");
+
+  try {
+    const result = await expensesCollection.deleteOne({
+      _id: new ObjectId(id),
+    });
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ message: "Expense not found" });
+    }
+    res.status(200).json({ message: "Expense deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting expense:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 async function startServer() {
   await connectDB(); // Connect to DB before starting the server
   app.listen(PORT, "0.0.0.0", () => {

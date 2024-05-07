@@ -180,10 +180,32 @@ function AdminPage() {
         return updatedForms
       })
 
-      alert('Form deleted successfully') // Add confirmation alert
+      alert('Entrada deletada.') // Add confirmation alert
     } catch (error) {
       console.error('Error deleting form:', error)
       alert(error.message) // Show error message to the user
+    }
+  }
+
+  const handleDeleteExpense = async (expenseId) => {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/admin/expenses/${expenseId}`,
+        {
+          method: 'DELETE',
+        }
+      )
+      if (!response.ok) throw new Error('Failed to delete the expense.')
+
+      // Update local state to reflect the change
+      setExpenses((expenses) =>
+        expenses.filter((expense) => expense._id !== expenseId)
+      )
+
+      alert('Despesa deletada.')
+    } catch (error) {
+      console.error('Error deleting expense:', error)
+      alert(error.message)
     }
   }
 
@@ -347,6 +369,12 @@ function AdminPage() {
                       {expense.description}: R$
                       {parseFloat(expense.amount).toFixed(2)}
                     </p>
+                    <button
+                      onClick={() => handleDeleteExpense(expense._id)}
+                      className="bg-red-500 hover:bg-red-700 text-white font-bold text-sm py-1 px-2 rounded"
+                    >
+                      Deletar
+                    </button>
                   </div>
                 ))}
                 <p className="mt-4">
