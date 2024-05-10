@@ -64,6 +64,8 @@ app.post("/login", async (req, res) => {
 });
 
 app.post("/submit-form", async (req, res) => {
+  console.log("Received data:", req.body); // Check what the server actually receives
+
   const {
     pacienteNome,
     date,
@@ -82,7 +84,7 @@ app.post("/submit-form", async (req, res) => {
     payments,
     observacao,
     procedimento,
-    moneyAmount,
+    moneyAmount: moneyAmount || 0,
     creditCardAmount: creditCardAmount || 0, // Convert to 0 if empty
     pixAmount: pixAmount || 0, // Convert to 0 if empty
     addedBy: new ObjectId(addedBy), // Correct use of ObjectId constructor
@@ -90,6 +92,7 @@ app.post("/submit-form", async (req, res) => {
 
   try {
     const collection = dbClient.db(process.env.DB_NAME).collection("entradas");
+    console.log("Final data to insert:", formData); // Log it here
     await collection.insertOne(formData);
     res.status(201).json({ message: "Form submitted successfully" });
   } catch (error) {

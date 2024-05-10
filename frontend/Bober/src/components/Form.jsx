@@ -1,8 +1,8 @@
-import React, { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import moment from 'moment-timezone'
-import Header from './Header'
-import { useAppContext } from '../contexts/AppContext'
+import React, { useState, useEffect } from "react"
+import { useForm } from "react-hook-form"
+import moment from "moment-timezone"
+import Header from "./Header"
+import { useAppContext } from "../contexts/AppContext"
 
 function Form() {
   const {
@@ -13,39 +13,122 @@ function Form() {
     reset,
     formState: { errors },
   } = useForm()
-
+  const [procedureType, setProcedureType] = useState("") // Tracks if user is selecting specialty or exam
+  const [procedureValue, setProcedureValue] = useState("") // State to store the selected procedure value
   const [payments, setPayments] = useState([])
-  const currentDate = new Date().toISOString().split('T')[0]
+  const currentDate = new Date().toISOString().split("T")[0]
   const { userId } = useAppContext()
+
+  const procedures = {
+    specialties: {
+      "Clínico Geral": 300,
+      Cardiologista: 450,
+      Dermatologista: 350,
+      Endocrinologista: 400,
+      Gastroenterologista: 350,
+      Geriatra: 300,
+      Ginecologista: 400,
+      Nefrologista: 350,
+      Neurologista: 350,
+      Nutricionista: 150,
+      Ortopedista: 350,
+      Otorrinolaringologista: 350,
+      Psicóloga: 100,
+      Urologista: 350,
+      Vascular: 350,
+    },
+    exams: {
+      ASO: 60,
+      Atestado: 200,
+      Audiometria: 80,
+      Biópsia: 200,
+      "Eco de Carótidas": 350,
+      "Ecocardiograma (ECO)": 350,
+      "Eletrocardiograma (ECG)": 70,
+      Endoscopia: 320,
+      Espirometria: 170,
+      Fototerapia: 150,
+      Hemograma: 30,
+      Holter: 250,
+      Impedanciometria: 80,
+      Mapa: 250,
+      Peniscopia: 250,
+      "Perfil Lipídico": 100,
+      "Raio-X": 100,
+      "USG ABD Inferior": 180,
+      "USG ABD Superior": 180,
+      "USG ABD Total": 180,
+      "USG Bolsa Escrotal": 250,
+      "USG MI D": 300,
+      "USG MI E": 300,
+      "USG MMII": 600,
+      "USG Perna E": 300,
+      "USG Perna D": 300,
+      "USG Pélvica": 180,
+      "USG Próstata": 180,
+      "USG Rins e Vias Urinárias": 180,
+      Vídeonasolaringoscopia: 150,
+    },
+  }
+  const options =
+    procedureType === "specialties" ? procedures.specialties : procedures.exams
+
+  const handlePaymentChange = (event) => {
+    const { value, checked } = event.target
+    setPayments((prev) =>
+      checked ? [...prev, value] : prev.filter((payment) => payment !== value)
+    )
+  }
+  const selectedProcedure = watch("procedimento")
+  useEffect(() => {
+    if (selectedProcedure) {
+      const price = procedures[procedureType][selectedProcedure] || 0
+      setProcedureValue(selectedProcedure)
+
+      // Set default values based on what payments are included
+      if (payments.includes("Dinheiro")) {
+        setValue("moneyAmount", price)
+      } else {
+        setValue("moneyAmount", 0)
+      }
+
+      if (payments.includes("Cartão de Crédito")) {
+        setValue("creditCardAmount", price)
+      } else {
+        setValue("creditCardAmount", 0)
+      }
+
+      if (payments.includes("Pix")) {
+        setValue("pixAmount", price)
+      } else {
+        setValue("pixAmount", 0)
+      }
+    }
+  }, [selectedProcedure, payments, procedures, procedureType, setValue])
 
   const onSubmit = async (data) => {
     // First, ensure at least one payment method is selected
     if (payments.length === 0) {
-      alert('Por favor, escolha pelo menos um método de pagamento!')
+      alert("Por favor, escolha pelo menos um método de pagamento!")
       return // Stop submission if no payment method is selected
     }
 
-    if (!window.confirm('Tem certeza que quer adicionar essa entrada?')) {
+    if (!window.confirm("Tem certeza que quer adicionar essa entrada?")) {
       return // Stop submission if not confirmed
     }
-
-    const procedureValue =
-      data.procedureType === 'especialidade'
-        ? data.especialidadeMedico
-        : data.exame
 
     let submissionData = {
       pacienteNome: data.pacienteNome,
       date: moment(data.date)
-        .tz('America/Sao_Paulo', true)
-        .subtract(3, 'hours')
+        .tz("America/Sao_Paulo", true)
+        .subtract(3, "hours")
         .toISOString(),
-      procedimento: procedureValue,
+      procedimento: procedureValue, // Make sure this is logging correctly
       payments: payments,
-      observacao: data.observacao || '',
-      moneyAmount: data.moneyAmount || '',
-      creditCardAmount: data.creditCardAmount || '',
-      pixAmount: data.pixAmount || '',
+      observacao: data.observacao || "",
+      moneyAmount: data.moneyAmount || "",
+      creditCardAmount: data.creditCardAmount || "",
+      pixAmount: data.pixAmount || "",
       addedBy: userId,
     }
 
@@ -53,39 +136,23 @@ function Form() {
       const response = await fetch(
         `${import.meta.env.VITE_API_BASE_URL}/submit-form`,
         {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(submissionData),
         }
       )
 
       if (response.ok) {
-        alert('Entrada adicionada!')
+        alert("Entrada adicionada!")
         reset() // Reset all form fields
         setPayments([]) // Clear payments array
       } else {
-        console.error('Erro em enviar o formulário:', response.statusText)
+        console.error("Erro em enviar o formulário:", response.statusText)
       }
     } catch (error) {
-      console.error('Error submitting form:', error.message)
+      console.error("Error submitting form:", error.message)
     }
   }
-
-  const handlePaymentChange = (event) => {
-    const { value, checked } = event.target
-    setPayments(
-      checked
-        ? [...payments, value]
-        : payments.filter((payment) => payment !== value)
-    )
-  }
-
-  // Dynamically adjust form based on selection
-  const procedureType = watch('procedureType')
-  const handleOptionClick = (optionType) => {
-    setValue('procedureType', optionType)
-  }
-
   return (
     <>
       <Header />
@@ -99,141 +166,58 @@ function Form() {
               Nome do Paciente
             </label>
             <input
-              {...register('pacienteNome', {
-                required: 'Você precisa preencher esse campo.',
+              {...register("pacienteNome", {
+                required: "Você precisa preencher esse campo.",
                 minLength: {
                   value: 8,
-                  message: 'O nome é muito pequeno.',
+                  message: "O nome é muito pequeno.",
                 },
               })}
               type="text"
               id="pacienteNome"
               className="form-input mt-1 pl-2 block w-full bg-gray-300 border-slate-600 rounded-md shadow-sm focus:border-slate-800 focus:ring focus:ring-blue-500 focus:ring-opacity-50"
             />
-            {errors.pacienteNome && (
-              <p className="text-red-500 mt-2 font-mono">
-                {errors.pacienteNome.message}
-              </p>
-            )}
           </div>
           <div className="mb-4 flex justify-evenly space-x-4">
             <button
               type="button"
-              onClick={() => handleOptionClick('especialidade')}
-              className={`px-4 py-2 rounded focus:outline-none hover:bg-blue-500 hover:text-white ${procedureType === 'especialidade' ? 'bg-blue-700 text-white' : 'bg-gray-300 text-gray-700'}`}
+              onClick={() => setProcedureType("specialties")}
+              className={`px-4 py-2 rounded focus:outline-none ${procedureType === "specialties" ? "bg-blue-500 text-white" : "bg-gray-300 hover:bg-blue-600 hover:text-white"}`}
             >
               Especialidade
             </button>
             <button
               type="button"
-              onClick={() => handleOptionClick('exame')}
-              className={`px-4 py-2 rounded focus:outline-none hover:bg-blue-500 hover:text-white ${procedureType === 'exame' ? 'bg-blue-700 text-white' : 'bg-gray-300 text-gray-700'}`}
+              onClick={() => setProcedureType("exams")}
+              className={`px-4 py-2 rounded focus:outline-none ${procedureType === "exams" ? "bg-blue-500 text-white" : "bg-gray-300 hover:bg-blue-600 hover:text-white"}`}
             >
               Exame
             </button>
           </div>
-          {procedureType === 'especialidade' ? (
-            <div className="mb-4">
-              <label
-                htmlFor="especialidadeMedico"
-                className="block text-gray-700"
-              >
-                Especialidade
-              </label>
-              <select
-                {...register('especialidadeMedico')}
-                className="bg-gray-100 form-select mt-1 block w-full"
-              >
-                <option value="Clinico">Clínico Geral</option>
-                <option value="Cardiologia">Cardiologista</option>
-                <option value="Dermatologia">Dermatologista</option>
-                <option value="Endocrinologia">Endocrinologista</option>
-                <option value="Gastroenterologia">Gastroenterologista</option>
-                <option value="Geriatria">Geriatra</option>
-                <option value="Ginecologia">Ginecologista</option>
-                <option value="Nefrologia">Nefrologista</option>
-                <option value="Neurologia">Neurologista</option>
-                <option value="Nutricionista">Nutricionista</option>
-                <option value="Ortopedia">Ortopedista</option>
-                <option value="Otorrinolaringologia">
-                  Otorrinolaringologia
-                </option>
-                <option value="Psicologia">Psicóloga</option>
-                <option value="Urologia">Urologista</option>
-                <option value="Vascular">Vascular</option>
-              </select>
-            </div>
-          ) : procedureType === 'exame' ? (
-            <div className="mb-4">
-              <label htmlFor="exame" className="block text-gray-700">
-                Exame
-              </label>
-              <select
-                {...register('exame')}
-                className="bg-gray-100 form-select mt-1 block w-full"
-              >
-                <option value="Aplicação com Glicose">
-                  Aplicação com Glicose
-                </option>
-                <option value="Aplicação de espuma">Aplicação de Espuma</option>
-                <option value="ASO">ASO</option>
-                <option value="Atestado">Atestado</option>
-                <option value="Audiometria">Audiometria</option>
-                <option value="Biópsia">Biópsia</option>
-                <option value="Eco de Carótidas">Eco de Carótidas</option>
-                <option value="Ecocardiograma">ECO</option>
-                <option value="Eletrocardiograma">ECG</option>
-                <option value="Endoscopia">Endoscopia</option>
-                <option value="Espirometria">Espirometria</option>
-                <option value="Fototerapia">Fototerapia</option>
-                <option value="Hemograma">Hemograma</option>
-                <option value="Holter">Holter</option>
-                <option value="Impedanciometria">Impedanciometria</option>
-                <option value="Lab">LAB</option>
-                <option value="Mapa">Mapa</option>
-                <option value="Mapa">Medicação</option>
-                <option value="Peniscopia">Peniscopia</option>
-                <option value="Perfil Lipídico">Perfil Lipídico</option>
-                <option value="Procedimento Dermato">
-                  Procedimento Dermato
-                </option>
-                <option value="Procedimento Gineco">Procedimento Gineco</option>
-                <option value="Procedimento Urologista">
-                  Procedimento Urologista
-                </option>
-                <option value="Raio-x">Raio-X</option>
-                <option value="USG ABD Inferior">USG ABD Inferior</option>
-                <option value="USG ABD Superior">USG ABD Superior</option>
-                <option value="USG ABD Total">USG ABD Total</option>
-                <option value="USG Bolsa Escrotal">USG Bolsa Escrotal</option>
-                <option value="USG MI D">USG MI D</option>
-                <option value="USG MI E">USG MI E</option>
-                <option value="USG MMII">USG MMII</option>
-                <option value="USG Pélvica">USG Pélvica</option>
-                <option value="USG Próstata">USG Próstata</option>
-                <option value="USG Rins e Vias Urinárias">
-                  USG Rins e Vias Urinárias
-                </option>
-                <option value="Videolaparoscopia/Vídeonasolaringoscopia">
-                  Videolaparoscopia/Vídeonasolaringoscopia
-                </option>
-              </select>
-            </div>
-          ) : null}
+          <select
+            {...register("procedimento")}
+            className="bg-gray-200 form-select mt-1 block w-full rounded"
+          >
+            {Object.keys(options).map((key) => (
+              <option key={key} value={key}>
+                {key}
+              </option>
+            ))}
+          </select>
 
-          <div className="mb-4">
-            <label htmlFor="payments" className="block text-gray-700">
-              Formas de Pagamento
+          <div className="mb-4 mt-1">
+            <label htmlFor="payments" className="block">
+              Formas de Pagamento:
             </label>
             <div>
               <label className="inline-flex items-center">
                 <input
                   type="checkbox"
                   value="Pix"
-                  {...register('paymentMethod', {
+                  {...register("paymentMethod", {
                     validate: () => payments.length > 0,
                   })} // Custom validation for at least one checkbox
-                  checked={payments.includes('Pix')} // Ensure the checkbox is controlled
+                  checked={payments.includes("Pix")} // Ensure the checkbox is controlled
                   onChange={handlePaymentChange}
                   className="form-checkbox"
                 />
@@ -243,10 +227,10 @@ function Form() {
                 <input
                   type="checkbox"
                   value="Dinheiro"
-                  {...register('paymentMethod', {
+                  {...register("paymentMethod", {
                     validate: () => payments.length > 0,
                   })}
-                  checked={payments.includes('Dinheiro')} // Ensure the checkbox is controlled
+                  checked={payments.includes("Dinheiro")} // Ensure the checkbox is controlled
                   onChange={handlePaymentChange}
                 />
                 <span className="ml-2">Dinheiro</span>
@@ -255,50 +239,50 @@ function Form() {
                 <input
                   type="checkbox"
                   value="Cartão de Crédito"
-                  {...register('paymentMethod', {
+                  {...register("paymentMethod", {
                     validate: () => payments.length > 0,
                   })}
                   className="form-checkbox"
-                  checked={payments.includes('Cartão de Crédito')} // Ensure the checkbox is controlled
+                  checked={payments.includes("Cartão de Crédito")} // Ensure the checkbox is controlled
                   onChange={handlePaymentChange}
                 />
                 <span className="ml-2">Cartão de Crédito</span>
               </label>
             </div>
           </div>
-          {payments.includes('Pix') && (
+          {payments.includes("Pix") && (
             <div className="mb-4">
               <label htmlFor="pixAmount" className="block text-gray-700">
                 Valor do Pix
               </label>
               <input
-                {...register('pixAmount')}
+                {...register("pixAmount")}
                 type="number"
                 id="pixAmount"
                 className="pl-2 form-input mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50"
               />
             </div>
           )}
-          {payments.includes('Dinheiro') && (
+          {payments.includes("Dinheiro") && (
             <div className="mb-4">
               <label htmlFor="moneyAmount" className="block text-gray-700">
                 Valor em Dinheiro
               </label>
               <input
-                {...register('moneyAmount')}
+                {...register("moneyAmount")}
                 type="number"
                 id="moneyAmount"
                 className="pl-2 form-input mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50"
               />
             </div>
           )}
-          {payments.includes('Cartão de Crédito') && (
+          {payments.includes("Cartão de Crédito") && (
             <div className="mb-4">
               <label htmlFor="creditCardAmount" className="block text-gray-700">
                 Valor do Cartão de Crédito
               </label>
               <input
-                {...register('creditCardAmount')}
+                {...register("creditCardAmount")}
                 type="number"
                 id="creditCardAmount"
                 className="pl-2 form-input mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50"
