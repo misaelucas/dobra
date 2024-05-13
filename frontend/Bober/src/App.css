@@ -1,0 +1,13 @@
+.custom-checkbox {
+  background-color: white !important; /* Ensures the background is white */
+  border-color: gray !important;      /* Ensures the border color is gray */
+  background-color: red !important;
+  color: white !important;
+}
+
+.form-checkbox {
+}
+
+input {
+    background-color: white;
+}

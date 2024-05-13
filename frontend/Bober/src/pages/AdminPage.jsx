@@ -25,6 +25,10 @@ function AdminPage() {
   const [expenses, setExpenses] = useState([])
   const [expenseSum, setExpenseSum] = useState(0)
 
+  const handleAccordionChange = (procedure) => {
+    setExpandedGroup(expandedGroup === procedure ? null : procedure)
+  }
+
   const groupByProcedure = (formData) => {
     return formData.reduce((acc, item) => {
       const { procedimento } = item
@@ -99,7 +103,6 @@ function AdminPage() {
       )
       if (response.ok) {
         const formData = await response.json()
-        console.log('Received form data:', formData) // Check what data you received
 
         // Group data by procedures
         const groupedData = groupByProcedure(formData)
@@ -213,9 +216,9 @@ function AdminPage() {
     <div className="!bg-slate-800">
       <Header />
       <div className="flex justify-center mt-4">
-        <img src={logo} alt="Logo" className="w-48" />
+       <a href="/"> <img src={logo} alt="Logo" className="w-48" /> </a>
       </div>
-      <div className="flex flex-col items-center justify-center pt-2 !bg-slate-800 font-sans text-lg adminpage">
+      <div className="flex flex-col items-center justify-center pt-2 !bg-slate-800 font-sans text-black text-lg adminpage">
         <div className="flex flex-wrap justify-between mb-4 w-full max-w-4xl">
           <div>
             <label htmlFor="yearSelect" className="block text-white">
@@ -283,44 +286,43 @@ function AdminPage() {
 
         <div className="w-full max-w-4xl ">
           {Object.entries(forms)
-            .sort((a, b) => a[0].localeCompare(b[0])) // Sort by procedure name which is `a[0]` and `b[0]`
-            .map(([procedure, entries]) => (
-              <div key={procedure}>
-                <button
-                  onClick={() =>
-                    setExpandedGroup(
-                      expandedGroup === procedure ? null : procedure
-                    )
-                  }
-                  className="py-2 w-full text-left px-2 mt-4 bg-green-400 text-black rounded"
-                >
-                  {`${procedure} (${entries.length})`} - R$
-                  {calculateTotalPriceForProcedure(procedure)}
-                </button>
-
-                {expandedGroup === procedure && (
-                  <table className="table-auto mt-1 bg-slate-900 mt-2 rounded w-full">
+            .sort((a, b) => a[0].localeCompare(b[0]))
+            .map(([procedure, entries], index) => (
+              <div key={procedure} className="collapse mt-2 !rounded-none">
+                <input
+                  type="radio"
+                  name="my-accordion-2"
+                  id={`accordion-${index}`}
+                  className="peer"
+                  checked={expandedGroup === procedure}
+                  onChange={() => handleAccordionChange(procedure)}
+                />
+                <div className="collapse-title text-xl font-medium bg-green-400 text-black">
+                  {`${procedure} (${entries.length}) - R$${calculateTotalPriceForProcedure(procedure)}`}
+                </div>
+                <div className="collapse-content bg-slate-900 text-white ">
+                  <table className="table-auto w-full ">
                     <thead>
-                      <tr className="text-white uppercase text-sm leading-normal bg-slate-900">
+                      <tr className="uppercase text-lg leading-normal">
                         <th className="py-3 px-6 text-left">Nome</th>
                         <th className="py-3 px-6 text-left">Preço</th>
                         <th className="py-3 px-6 text-left">Pagamento</th>
                         <th className="py-3 px-6 text-left">Usuário</th>
                       </tr>
                     </thead>
-                    <tbody className="text-white text-sm font-light">
+                    <tbody className="text-lg font-light">
                       {entries
                         .slice() // Creates a shallow copy to avoid mutating the original array during sorting
                         .sort((a, b) =>
                           a.pacienteNome.localeCompare(b.pacienteNome)
-                        ) // Sorts alphabetically by patient name within each procedure group
-                        .map((form, index) => (
-                          <tr key={index} className="border text-lg">
+                        )
+                        .map((form, idx) => (
+                          <tr key={idx} className="border">
                             <td className="py-3 px-6 text-left">
                               {form.pacienteNome}
                             </td>
                             <td className="py-3 px-6 text-left">
-                              {`${calculateTotalPrice(form)}${renderPaymentDetails(form)}`}
+                              {form.moneyAmount}
                             </td>
                             <td className="py-3 px-6 text-left">
                               {form.payments.join(', ')}
@@ -330,21 +332,35 @@ function AdminPage() {
                             </td>
                             <td className="py-3 px-6 text-left">
                               <button
-                                onClick={() => handleDelete(form._id)}
-                                className="text-white p-1 rounded bg-red-500 hover:text-red-700"
+                                onClick={() => handleDelete(formId)}
+                                className="text-white p-1 rounded bg-red-500 hover:bg-red-600 flex items-center justify-center"
+                                aria-label="Delete"
                               >
-                                Apagar
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  strokeWidth={1.5}
+                                  stroke="currentColor"
+                                  className="w-6 h-6"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
+                                  />
+                                </svg>
                               </button>
                             </td>
                           </tr>
                         ))}
                     </tbody>
                   </table>
-                )}
+                </div>
               </div>
             ))}
 
-          <div className="flex w-[500px] bg-slate-900 ring-2  !ring-green-600/50 !ring-offset-slate-800 ring-offset-4  text-white rounded-lg shadow mt-4 mb-4 w-full">
+          <div className="flex w-[500px] bg-slate-900 ring-2  !ring-green-600/50 !ring-offset-slate-800 ring-offset-4  text-white rounded shadow mt-4 mb-4 w-full">
             <div className="w-full rounded p-2 flex flex-col">
               <h3 className="text-lg mb-1 ">
                 Valor total com despesas inclusas:
@@ -361,7 +377,7 @@ function AdminPage() {
             </div>
 
             {expenses.length > 0 && (
-              <div className="expense-summary bg-slate-900 text-white rounded-lg p-2">
+              <div className="expense-summary bg-slate-900 text-white rounded p-2">
                 <h3 className="text-lg">Despesas:</h3>
                 {expenses.map((expense, index) => (
                   <div key={index} className="expense-item">
@@ -371,9 +387,23 @@ function AdminPage() {
                     </p>
                     <button
                       onClick={() => handleDeleteExpense(expense._id)}
-                      className="bg-red-500 hover:bg-red-700 text-white font-bold text-sm py-1 px-2 rounded"
+                      className="text-white p-1 rounded bg-red-500 hover:bg-red-600 flex items-center justify-center"
+                      aria-label="Delete"
                     >
-                      Deletar
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={1.5}
+                        stroke="currentColor"
+                        className="w-6 h-6"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
+                        />
+                      </svg>
                     </button>
                   </div>
                 ))}

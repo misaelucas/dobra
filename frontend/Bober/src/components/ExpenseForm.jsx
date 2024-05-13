@@ -1,11 +1,24 @@
 import React, { useState } from 'react'
 import Header from './Header'
 import logo from '../assets/logo.png'
+import Notification from './Notifications'
 
 function ExpenseForm() {
   const [amount, setAmount] = useState('')
   const [description, setDescription] = useState('')
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]) // Set default date to today
+  const [notification, setNotification] = useState({
+    message: '',
+    type: '',
+    show: false,
+  })
+  const showNotification = (message, type) => {
+    setNotification({ message, type, show: true })
+  }
+
+  const handleClose = () => {
+    setNotification({ ...notification, show: false })
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -38,7 +51,7 @@ function ExpenseForm() {
       )
 
       if (response.ok) {
-        alert('Despesa adicionada com sucesso!')
+        showNotification('Despesa adicionada!', 'success')
         setAmount('')
         setDescription('')
         setDate(new Date().toISOString().split('T')[0]) // Reset date to today
@@ -46,7 +59,7 @@ function ExpenseForm() {
         alert('Failed to add expense')
       }
     } catch (error) {
-      console.error('Error submitting expense:', error)
+      showNotification('Failed to submit expense: ' + error.message, 'error')
       alert('Error submitting expense')
     }
   }
@@ -55,7 +68,10 @@ function ExpenseForm() {
     <>
       <Header />
       <div className="flex justify-center mt-2">
-        <img src={logo} alt="Logo" className="w-48" />
+        <a href="/">
+          {' '}
+          <img src={logo} alt="Logo" className="w-48" />{' '}
+        </a>
       </div>
 
       <div className="flex flex-col items-center justify-center mx-4 bg-slate-800">
@@ -117,6 +133,13 @@ function ExpenseForm() {
             Adicionar despesa
           </button>
         </form>
+        {notification.show && (
+          <Notification
+            message={notification.message}
+            type={notification.type}
+            onClose={handleClose}
+          />
+        )}
       </div>
     </>
   )
