@@ -23,14 +23,14 @@ function ExpenseForm() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!amount || !description || !date) {
-      alert('Please fill in all fields')
+      alert('Por favor, preencha todos os campos')
       return
     }
 
     // Validate that amount is a number and not NaN
     const numericAmount = parseFloat(amount)
     if (isNaN(numericAmount)) {
-      alert('Please enter a valid number for the amount')
+      alert('Por favor, digite um número válido')
       return
     }
 
@@ -56,11 +56,11 @@ function ExpenseForm() {
         setDescription('')
         setDate(new Date().toISOString().split('T')[0]) // Reset date to today
       } else {
-        alert('Failed to add expense')
+        alert('Falha ao adicionar despesa')
       }
     } catch (error) {
       showNotification('Failed to submit expense: ' + error.message, 'error')
-      alert('Error submitting expense')
+      alert('Erro ao enviar despesa!')
     }
   }
 

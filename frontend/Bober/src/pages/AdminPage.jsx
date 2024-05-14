@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react'
 import Header from '../components/Header'
 import logo from '../assets/logo.png'
 import { useAppContext } from '../contexts/AppContext' // Make sure the path is correct
+import Notification from '../components/Notifications'
 
 function AdminPage() {
   const { userRole } = useAppContext()
@@ -24,6 +25,18 @@ function AdminPage() {
   const [digitalSum, setDigitalSum] = useState(0)
   const [expenses, setExpenses] = useState([])
   const [expenseSum, setExpenseSum] = useState(0)
+  const [notification, setNotification] = useState({
+    message: '',
+    type: '',
+    show: false,
+  })
+  const showNotification = (message, type) => {
+    setNotification({ message, type, show: true })
+  }
+
+  const handleClose = () => {
+    setNotification({ ...notification, show: false })
+  }
 
   const handleAccordionChange = (procedure) => {
     setExpandedGroup(expandedGroup === procedure ? null : procedure)
@@ -183,10 +196,10 @@ function AdminPage() {
         return updatedForms
       })
 
-      alert('Entrada deletada.') // Add confirmation alert
+      showNotification('Entrada deletada!', 'success')
     } catch (error) {
       console.error('Error deleting form:', error)
-      alert(error.message) // Show error message to the user
+      showNotification('Falha ao deletar entrada: ' + error.message, 'error')
     }
   }
 
@@ -216,7 +229,10 @@ function AdminPage() {
     <div className="!bg-slate-800">
       <Header />
       <div className="flex justify-center mt-4">
-       <a href="/"> <img src={logo} alt="Logo" className="w-48" /> </a>
+        <a href="/">
+          {' '}
+          <img src={logo} alt="Logo" className="w-48" />{' '}
+        </a>
       </div>
       <div className="flex flex-col items-center justify-center pt-2 !bg-slate-800 font-sans text-black text-lg adminpage">
         <div className="flex flex-wrap justify-between mb-4 w-full max-w-4xl">
@@ -322,7 +338,7 @@ function AdminPage() {
                               {form.pacienteNome}
                             </td>
                             <td className="py-3 px-6 text-left">
-                              {form.moneyAmount}
+                              {`${calculateTotalPrice(form)}${renderPaymentDetails(form)}`}
                             </td>
                             <td className="py-3 px-6 text-left">
                               {form.payments.join(', ')}
@@ -332,7 +348,7 @@ function AdminPage() {
                             </td>
                             <td className="py-3 px-6 text-left">
                               <button
-                                onClick={() => handleDelete(formId)}
+                                onClick={() => handleDelete(form._id)}
                                 className="text-white p-1 rounded bg-red-500 hover:bg-red-600 flex items-center justify-center"
                                 aria-label="Delete"
                               >
@@ -359,6 +375,13 @@ function AdminPage() {
                 </div>
               </div>
             ))}
+          {notification.show && (
+            <Notification
+              message={notification.message}
+              type={notification.type}
+              onClose={handleClose}
+            />
+          )}
 
           <div className="flex w-[500px] bg-slate-900 ring-2  !ring-green-600/50 !ring-offset-slate-800 ring-offset-4  text-white rounded shadow mt-4 mb-4 w-full">
             <div className="w-full rounded p-2 flex flex-col">
