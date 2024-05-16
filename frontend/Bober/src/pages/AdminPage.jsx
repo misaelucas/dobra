@@ -8,8 +8,6 @@ function AdminPage() {
   const { userRole } = useAppContext()
   const timeZone = 'America/Sao_Paulo' // This matches GMT-3
   const today = new Date(new Date().toLocaleString('en-US', { timeZone }))
-  const todayFormatted = today.toISOString().split('T')[0] // Format to YYYY-MM-DD
-  const [selectedDate, setSelectedDate] = useState(todayFormatted)
 
   const currentYear = today.getFullYear()
   const currentMonth = today.getMonth() + 1 // getMonth is 0-indexed, add 1 for 1-indexed
