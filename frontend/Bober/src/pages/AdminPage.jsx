@@ -1,40 +1,43 @@
-import React, { useState, useEffect, useContext } from 'react'
+import React, { useState, useEffect } from 'react'
+import { useSelector, useDispatch } from 'react-redux'
+import {
+  setForms,
+  setTotalSum,
+  setCashSum,
+  setDigitalSum,
+  setExpenses,
+  setExpenseSum,
+  showNotification,
+  hideNotification,
+} from '../redux/slices/formsSlice'
 import Header from '../components/Header'
 import logo from '../assets/logo.png'
-import { useAppContext } from '../contexts/AppContext' // Make sure the path is correct
 import Notification from '../components/Notifications'
+import { useAppContext } from '../contexts/AppContext'
 
 function AdminPage() {
+  const dispatch = useDispatch()
+  const {
+    forms,
+    totalSum,
+    cashSum,
+    digitalSum,
+    expenses,
+    expenseSum,
+    notification,
+  } = useSelector((state) => state.forms)
   const { userRole } = useAppContext()
-  const timeZone = 'America/Sao_Paulo' // This matches GMT-3
+  const timeZone = 'America/Sao_Paulo'
   const today = new Date(new Date().toLocaleString('en-US', { timeZone }))
 
   const currentYear = today.getFullYear()
-  const currentMonth = today.getMonth() + 1 // getMonth is 0-indexed, add 1 for 1-indexed
+  const currentMonth = today.getMonth() + 1
   const currentDay = today.getDate()
 
-  const [forms, setForms] = useState([])
   const [year, setYear] = useState(currentYear)
   const [month, setMonth] = useState(currentMonth)
   const [day, setDay] = useState(currentDay)
   const [expandedGroup, setExpandedGroup] = useState(null)
-  const [totalSum, setTotalSum] = useState(0)
-  const [cashSum, setCashSum] = useState(0)
-  const [digitalSum, setDigitalSum] = useState(0)
-  const [expenses, setExpenses] = useState([])
-  const [expenseSum, setExpenseSum] = useState(0)
-  const [notification, setNotification] = useState({
-    message: '',
-    type: '',
-    show: false,
-  })
-  const showNotification = (message, type) => {
-    setNotification({ message, type, show: true })
-  }
-
-  const handleClose = () => {
-    setNotification({ ...notification, show: false })
-  }
 
   const handleAccordionChange = (procedure) => {
     setExpandedGroup(expandedGroup === procedure ? null : procedure)
@@ -54,16 +57,146 @@ function AdminPage() {
   useEffect(() => {
     if (userRole === 'receptionist') {
       // Lock the date to today for receptionists
-      setYear(today.getFullYear())
-      setMonth(today.getMonth() + 1)
-      setDay(today.getDate())
+      setYear(currentYear)
+      setMonth(currentMonth)
+      setDay(currentDay)
     }
-  }, [userRole, today])
-  // Additional useEffect for fetching forms and expenses when date changes
+  }, [userRole, currentYear, currentMonth, currentDay])
+
   useEffect(() => {
     fetchForms()
     fetchExpenses()
   }, [year, month, day])
+
+  const fetchForms = async () => {
+    if (!year || !month || !day) {
+      console.log('Please select all required filters.')
+      return
+    }
+
+    const queryString = `year=${year}&month=${month}&day=${day}`
+
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/admin/forms?${queryString}`
+      )
+      if (response.ok) {
+        const formData = await response.json()
+        const groupedData = groupByProcedure(formData)
+
+        let total = 0
+        let cash = 0
+        let digital = 0
+        formData.forEach((form) => {
+          const moneyAmount = parseFloat(form.moneyAmount) || 0
+          const pixAmount = parseFloat(form.pixAmount) || 0
+          const creditCardAmount = parseFloat(form.creditCardAmount) || 0
+
+          total += moneyAmount + pixAmount + creditCardAmount
+          cash += moneyAmount
+          digital += pixAmount + creditCardAmount
+        })
+
+        dispatch(setTotalSum(total))
+        dispatch(setCashSum(cash))
+        dispatch(setDigitalSum(digital))
+        dispatch(setForms(groupedData))
+      } else {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+    } catch (error) {
+      console.error('Fetch error:', error.message)
+    }
+  }
+
+  const fetchExpenses = async () => {
+    if (!year || !month || !day) {
+      return
+    }
+
+    const paddedMonth = month.toString().padStart(2, '0')
+    const paddedDay = day.toString().padStart(2, '0')
+    const queryString = `year=${year}&month=${paddedMonth}&day=${paddedDay}`
+
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/admin/expenses?${queryString}`
+      )
+      if (response.ok) {
+        const expenseData = await response.json()
+        dispatch(setExpenses(expenseData))
+        const totalExpenses = expenseData.reduce(
+          (sum, expense) => sum + parseFloat(expense.amount),
+          0
+        )
+        dispatch(setExpenseSum(totalExpenses))
+      } else {
+        console.error(`HTTP error! status: ${response.status}`)
+      }
+    } catch (error) {
+      console.error('Fetch error:', error.message)
+    }
+  }
+
+  const handleDelete = async (formId) => {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/admin/forms/${formId}`,
+        {
+          method: 'DELETE',
+        }
+      )
+      if (!response.ok) throw new Error('Failed to delete the form.')
+
+      // Update local state to reflect the change
+      const updatedForms = { ...forms }
+      for (const procedure in updatedForms) {
+        updatedForms[procedure] = updatedForms[procedure].filter(
+          (form) => form._id !== formId
+        )
+      }
+
+      dispatch(setForms(updatedForms))
+      dispatch(
+        showNotification({ message: 'Entrada deletada!', type: 'success' })
+      )
+    } catch (error) {
+      console.error('Error deleting form:', error)
+      dispatch(
+        showNotification({
+          message: 'Falha ao deletar entrada: ' + error.message,
+          type: 'error',
+        })
+      )
+    }
+  }
+
+  const handleDeleteExpense = async (expenseId) => {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/admin/expenses/${expenseId}`,
+        {
+          method: 'DELETE',
+        }
+      )
+      if (!response.ok) throw new Error('Failed to delete the expense.')
+
+      // Update local state to reflect the change
+      const updatedExpenses = expenses.filter(
+        (expense) => expense._id !== expenseId
+      )
+      dispatch(setExpenses(updatedExpenses))
+
+      alert('Despesa deletada.')
+    } catch (error) {
+      console.error('Error deleting expense:', error)
+      alert(error.message)
+    }
+  }
+
+  const handleClose = () => {
+    dispatch(hideNotification())
+  }
 
   function calculateTotalPrice(form) {
     const moneyAmount = parseFloat(form.moneyAmount) || 0
@@ -72,6 +205,7 @@ function AdminPage() {
 
     return moneyAmount + pixAmount + creditCardAmount
   }
+
   const calculateTotalPriceForProcedure = (procedure) => {
     const formsForProcedure = forms[procedure]
     if (!formsForProcedure || !formsForProcedure.length) {
@@ -95,132 +229,7 @@ function AdminPage() {
     if (form.pixAmount) details.push(`Pix: ${form.pixAmount}`)
     if (form.creditCardAmount) details.push(`Cartão: ${form.creditCardAmount}`)
 
-    // Show details if more than one payment type has an amount
     return details.length > 1 ? ` (${details.join(', ')})` : ''
-  }
-
-  const fetchForms = async () => {
-    if (!year || !month || !day) {
-      console.log('Please select all required filters.')
-      return
-    }
-
-    // Directly use year, month, and day for the query
-    const queryString = `year=${year}&month=${month}&day=${day}`
-
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/admin/forms?${queryString}`
-      )
-      if (response.ok) {
-        const formData = await response.json()
-
-        // Group data by procedures
-        const groupedData = groupByProcedure(formData)
-
-        // Calculate totals
-        let total = 0
-        let cash = 0
-        let digital = 0
-        formData.forEach((form) => {
-          const moneyAmount = parseFloat(form.moneyAmount) || 0
-          const pixAmount = parseFloat(form.pixAmount) || 0
-          const creditCardAmount = parseFloat(form.creditCardAmount) || 0
-
-          total += moneyAmount + pixAmount + creditCardAmount
-          cash += moneyAmount
-          digital += pixAmount + creditCardAmount
-        })
-
-        setTotalSum(total)
-        setCashSum(cash)
-        setDigitalSum(digital)
-
-        setForms(groupedData) // Update the state with grouped data by procedures
-      } else {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-    } catch (error) {
-      console.error('Fetch error:', error.message)
-    }
-  }
-
-  const fetchExpenses = async () => {
-    if (!year || !month || !day) {
-      return // Do not fetch if date is incomplete
-    }
-
-    const paddedMonth = month.toString().padStart(2, '0')
-    const paddedDay = day.toString().padStart(2, '0')
-    const queryString = `year=${year}&month=${paddedMonth}&day=${paddedDay}`
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/admin/expenses?${queryString}`
-      )
-      if (response.ok) {
-        const expenseData = await response.json()
-        setExpenses(expenseData)
-        const totalExpenses = expenseData.reduce(
-          (sum, expense) => sum + parseFloat(expense.amount),
-          0
-        )
-        setExpenseSum(totalExpenses)
-      } else {
-        console.error(`HTTP error! status: ${response.status}`)
-      }
-    } catch (error) {
-      console.error('Fetch error:', error.message)
-    }
-  }
-
-  const handleDelete = async (formId) => {
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/admin/forms/${formId}`,
-        {
-          method: 'DELETE',
-        }
-      )
-      if (!response.ok) throw new Error('Failed to delete the form.')
-
-      // Update local state to reflect the change
-      setForms((forms) => {
-        const updatedForms = { ...forms }
-        for (const procedure in updatedForms) {
-          updatedForms[procedure] = updatedForms[procedure].filter(
-            (form) => form._id !== formId
-          )
-        }
-        return updatedForms
-      })
-
-      showNotification('Entrada deletada!', 'success')
-    } catch (error) {
-      console.error('Error deleting form:', error)
-      showNotification('Falha ao deletar entrada: ' + error.message, 'error')
-    }
-  }
-
-  const handleDeleteExpense = async (expenseId) => {
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/admin/expenses/${expenseId}`,
-        {
-          method: 'DELETE',
-        }
-      )
-      if (!response.ok) throw new Error('Failed to delete the expense.')
-
-      // Update local state to reflect the change
-      setExpenses((expenses) =>
-        expenses.filter((expense) => expense._id !== expenseId)
-      )
-
-      alert('Despesa deletada.')
-    } catch (error) {
-      console.error('Error deleting expense:', error)
-      alert(error.message)
-    }
   }
 
   return (

@@ -64,7 +64,7 @@ function Form() {
       Hemograma: 30,
       Holter: 250,
       Impedanciometria: 80,
-      LAB: 0,
+      LAB: 50,
       Mapa: 250,
       Peniscopia: 250,
       'Perfil Lipídico': 100,
