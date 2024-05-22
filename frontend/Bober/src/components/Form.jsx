@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import Select from "react-select";
-import moment from "moment-timezone";
-import Header from "./Header";
-import { useAppContext } from "../contexts/AppContext";
-import Notification from "./Notifications";
-import "../App.css";
+import React, { useState, useEffect } from 'react'
+import { useForm } from 'react-hook-form'
+import Select from 'react-select'
+import moment from 'moment-timezone'
+import Header from './Header'
+import { useAppContext } from '../contexts/AppContext'
+import Notification from './Notifications'
+import '../App.css'
 
 function Form() {
   const {
@@ -14,26 +14,26 @@ function Form() {
     setValue,
     reset,
     formState: { errors },
-  } = useForm();
-  const [procedureType, setProcedureType] = useState("specialties");
-  const [procedureValue, setProcedureValue] = useState("");
-  const [payments, setPayments] = useState([]);
-  const { userId } = useAppContext();
+  } = useForm()
+  const [procedureType, setProcedureType] = useState('specialties')
+  const [procedureValue, setProcedureValue] = useState('')
+  const [payments, setPayments] = useState([])
+  const { userId } = useAppContext()
   const [notification, setNotification] = useState({
-    message: "",
-    type: "",
+    message: '',
+    type: '',
     show: false,
-  });
+  })
 
   const showNotification = (message, type) => {
-    setNotification({ message, type, show: true });
-  };
+    setNotification({ message, type, show: true })
+  }
 
   const handleClose = () => {
-    setNotification({ ...notification, show: false });
-  };
+    setNotification({ ...notification, show: false })
+  }
 
- const procedures = {
+  const procedures = {
     specialties: {
       'Clínico Geral': 300,
       'Cardiologista': 450,
@@ -84,9 +84,9 @@ function Form() {
       'USG Rins e Vias Urinárias': 180,
       'Vídeonasolaringoscopia': 150,
     },
-  };
-   const options =
-    procedureType === "specialties"
+  }
+  const options =
+    procedureType === 'specialties'
       ? Object.keys(procedures.specialties).map((key) => ({
           value: key,
           label: key,
@@ -94,13 +94,13 @@ function Form() {
       : Object.keys(procedures.exams).map((key) => ({
           value: key,
           label: key,
-        }));
+        }))
 
   useEffect(() => {
     if (!procedureValue && options.length > 0) {
-      setProcedureValue(options[0].value);
+      setProcedureValue(options[0].value)
     }
-  }, [procedureType, options]);
+  }, [procedureType, options])
 
   useEffect(() => {
     if (
@@ -109,66 +109,66 @@ function Form() {
       procedures[procedureType] &&
       procedures[procedureType][procedureValue]
     ) {
-      const price = procedures[procedureType][procedureValue] || 0;
+      const price = procedures[procedureType][procedureValue] || 0
 
-      setValue("moneyAmount", payments.includes("Dinheiro") ? price : 0);
+      setValue('moneyAmount', payments.includes('Dinheiro') ? price : 0)
       setValue(
-        "creditCardAmount",
-        payments.includes("Cartão de Crédito") ? price : 0
-      );
-      setValue("pixAmount", payments.includes("Pix") ? price : 0);
+        'creditCardAmount',
+        payments.includes('Cartão de Crédito') ? price : 0
+      )
+      setValue('pixAmount', payments.includes('Pix') ? price : 0)
     }
-  }, [procedureValue, payments, procedures, procedureType, setValue]);
+  }, [procedureValue, payments, procedures, procedureType, setValue])
 
   const handlePaymentChange = (event) => {
-    const { value, checked } = event.target;
+    const { value, checked } = event.target
     setPayments((prev) =>
       checked ? [...prev, value] : prev.filter((payment) => payment !== value)
-    );
-  };
+    )
+  }
 
   const onSubmit = async (data) => {
     if (payments.length === 0) {
-      alert("Por favor, escolha pelo menos um método de pagamento!");
-      return;
+      alert('Por favor, escolha pelo menos um método de pagamento!')
+      return
     }
 
     let submissionData = {
       pacienteNome: data.pacienteNome,
       date: moment(data.date)
-        .tz("America/Sao_Paulo", true)
-        .subtract(3, "hours")
+        .tz('America/Sao_Paulo', true)
+        .subtract(3, 'hours')
         .toISOString(),
       procedimento: procedureValue,
       payments: payments,
-      observacao: data.observacao || "",
-      moneyAmount: data.moneyAmount || "",
-      creditCardAmount: data.creditCardAmount || "",
-      pixAmount: data.pixAmount || "",
+      observacao: data.observacao || '',
+      moneyAmount: data.moneyAmount || '',
+      creditCardAmount: data.creditCardAmount || '',
+      pixAmount: data.pixAmount || '',
       addedBy: userId,
-    };
+    }
 
     try {
       const response = await fetch(
         `${import.meta.env.VITE_API_BASE_URL}/submit-form`,
         {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(submissionData),
         }
-      );
+      )
 
       if (response.ok) {
-        showNotification("Entrada adicionada!", "success");
-        reset();
-        setPayments([]);
+        showNotification('Entrada adicionada!', 'success')
+        reset()
+        setPayments([])
       } else {
-        console.error("Erro em enviar o formulário:", response.statusText);
+        console.error('Erro em enviar o formulário:', response.statusText)
       }
     } catch (error) {
-      showNotification("Failed to submit form: " + error.message, "error");
+      showNotification('Failed to submit form: ' + error.message, 'error')
     }
-  };
+  }
 
   return (
     <>
@@ -183,11 +183,11 @@ function Form() {
               Nome do Paciente
             </label>
             <input
-              {...register("pacienteNome", {
-                required: "Você precisa preencher esse campo.",
+              {...register('pacienteNome', {
+                required: 'Você precisa preencher esse campo.',
                 minLength: {
                   value: 8,
-                  message: "O nome é muito pequeno.",
+                  message: 'O nome é muito pequeno.',
                 },
               })}
               type="text"
@@ -202,11 +202,11 @@ function Form() {
           <div className="mb-4 flex justify-evenly text-black space-x-4">
             <button
               type="button"
-              onClick={() => setProcedureType("specialties")}
+              onClick={() => setProcedureType('specialties')}
               className={`px-4 py-2 rounded focus:outline-none ${
-                procedureType === "specialties"
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-300 hover:bg-blue-600 hover:text-white"
+                procedureType === 'specialties'
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gray-300 hover:bg-blue-600 hover:text-white'
               }`}
               data-testid="specialty-button"
             >
@@ -214,11 +214,11 @@ function Form() {
             </button>
             <button
               type="button"
-              onClick={() => setProcedureType("exams")}
+              onClick={() => setProcedureType('exams')}
               className={`px-4 py-2 rounded focus:outline-none ${
-                procedureType === "exams"
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-300 hover:bg-blue-600 hover:text-white"
+                procedureType === 'exams'
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gray-300 hover:bg-blue-600 hover:text-white'
               }`}
               data-testid="exam-button"
             >
@@ -243,13 +243,13 @@ function Form() {
                 <input
                   type="checkbox"
                   value="Pix"
-                  {...register("paymentMethod", {
+                  {...register('paymentMethod', {
                     validate: () => payments.length > 0,
                   })}
-                  checked={payments.includes("Pix")}
+                  checked={payments.includes('Pix')}
                   onChange={handlePaymentChange}
                   className="form-checkbox custom-checkbox"
-                  style={{ backgroundColor: "white", borderColor: "gray" }}
+                  style={{ backgroundColor: 'white', borderColor: 'gray' }}
                   data-testid="pix-checkbox"
                 />
                 <span className="ml-2">Pix</span>
@@ -258,10 +258,10 @@ function Form() {
                 <input
                   type="checkbox"
                   value="Dinheiro"
-                  {...register("paymentMethod", {
+                  {...register('paymentMethod', {
                     validate: () => payments.length > 0,
                   })}
-                  checked={payments.includes("Dinheiro")}
+                  checked={payments.includes('Dinheiro')}
                   onChange={handlePaymentChange}
                   data-testid="dinheiro-checkbox"
                 />
@@ -271,11 +271,11 @@ function Form() {
                 <input
                   type="checkbox"
                   value="Cartão de Crédito"
-                  {...register("paymentMethod", {
+                  {...register('paymentMethod', {
                     validate: () => payments.length > 0,
                   })}
                   className="form-checkbox"
-                  checked={payments.includes("Cartão de Crédito")}
+                  checked={payments.includes('Cartão de Crédito')}
                   onChange={handlePaymentChange}
                   data-testid="cartao-checkbox"
                 />
@@ -286,13 +286,13 @@ function Form() {
               <p className="text-red-600">{errors.paymentMethod.message}</p>
             )}
           </div>
-          {payments.includes("Pix") && (
+          {payments.includes('Pix') && (
             <div className="mb-4">
               <label htmlFor="pixAmount" className="block text-gray-700">
                 Valor do Pix
               </label>
               <input
-                {...register("pixAmount")}
+                {...register('pixAmount')}
                 type="number"
                 id="pixAmount"
                 data-testid="pixAmount"
@@ -300,13 +300,13 @@ function Form() {
               />
             </div>
           )}
-          {payments.includes("Dinheiro") && (
+          {payments.includes('Dinheiro') && (
             <div className="mb-4">
               <label htmlFor="moneyAmount" className="block text-gray-700">
                 Valor em Dinheiro
               </label>
               <input
-                {...register("moneyAmount")}
+                {...register('moneyAmount')}
                 type="number"
                 id="moneyAmount"
                 data-testid="moneyAmount"
@@ -314,13 +314,13 @@ function Form() {
               />
             </div>
           )}
-          {payments.includes("Cartão de Crédito") && (
+          {payments.includes('Cartão de Crédito') && (
             <div className="mb-4">
               <label htmlFor="creditCardAmount" className="block text-gray-700">
                 Valor do Cartão de Crédito
               </label>
               <input
-                {...register("creditCardAmount")}
+                {...register('creditCardAmount')}
                 type="number"
                 id="creditCardAmount"
                 data-testid="creditCardAmount"
@@ -350,7 +350,7 @@ function Form() {
         )}
       </div>
     </>
-  );
+  )
 }
 
-export default Form;
+export default Form
