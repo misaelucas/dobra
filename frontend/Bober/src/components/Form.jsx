@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
+import Select from 'react-select'
 import moment from 'moment-timezone'
 import Header from './Header'
 import { useAppContext } from '../contexts/AppContext'
@@ -10,13 +11,12 @@ function Form() {
   const {
     register,
     handleSubmit,
-    watch,
     setValue,
     reset,
     formState: { errors },
   } = useForm()
-  const [procedureType, setProcedureType] = useState('') // Tracks if user is selecting specialty or exam
-  const [procedureValue, setProcedureValue] = useState('') // State to store the selected procedure value
+  const [procedureType, setProcedureType] = useState('specialties')
+  const [procedureValue, setProcedureValue] = useState('')
   const [payments, setPayments] = useState([])
   const { userId } = useAppContext()
   const [notification, setNotification] = useState({
@@ -24,6 +24,7 @@ function Form() {
     type: '',
     show: false,
   })
+
   const showNotification = (message, type) => {
     setNotification({ message, type, show: true })
   }
@@ -35,38 +36,38 @@ function Form() {
   const procedures = {
     specialties: {
       'Clínico Geral': 300,
-      Cardiologista: 450,
-      Dermatologista: 350,
-      Endocrinologista: 400,
-      Gastroenterologista: 350,
-      Geriatra: 300,
-      Ginecologista: 400,
-      Nefrologista: 350,
-      Neurologista: 350,
-      Nutricionista: 150,
-      Ortopedista: 350,
-      Otorrinolaringologista: 350,
-      Psicóloga: 100,
-      Urologista: 350,
-      Vascular: 350,
+      'Cardiologista': 450,
+      'Dermatologista': 350,
+      'Endocrinologista': 400,
+      'Gastroenterologista': 350,
+      'Geriatra': 300,
+      'Ginecologista': 400,
+      'Nefrologista': 350,
+      'Neurologista': 350,
+      'Nutricionista': 150,
+      'Ortopedista': 350,
+      'Otorrinolaringologista': 350,
+      'Psicóloga': 100,
+      'Urologista': 350,
+      'Vascular': 350,
     },
     exams: {
-      ASO: 60,
-      Atestado: 200,
-      Audiometria: 80,
-      Biópsia: 200,
+      'ASO': 60,
+      'Atestado': 200,
+      'Audiometria': 80,
+      'Biópsia': 200,
       'Eco de Carótidas': 350,
       'Ecocardiograma (ECO)': 350,
       'Eletrocardiograma (ECG)': 70,
-      Endoscopia: 320,
-      Espirometria: 170,
-      Fototerapia: 150,
-      Hemograma: 30,
-      Holter: 250,
-      Impedanciometria: 80,
-      LAB: 0,
-      Mapa: 250,
-      Peniscopia: 250,
+      'Endoscopia': 320,
+      'Espirometria': 170,
+      'Fototerapia': 150,
+      'Hemograma': 30,
+      'Holter': 250,
+      'Impedanciometria': 80,
+      'LAB': 50,
+      'Mapa': 250,
+      'Peniscopia': 250,
       'Perfil Lipídico': 100,
       'Raio-X': 100,
       'USG ABD Inferior': 180,
@@ -81,30 +82,35 @@ function Form() {
       'USG Pélvica': 180,
       'USG Próstata': 180,
       'USG Rins e Vias Urinárias': 180,
-      Vídeonasolaringoscopia: 150,
+      'Vídeonasolaringoscopia': 150,
     },
   }
   const options =
-    procedureType === 'specialties' ? procedures.specialties : procedures.exams
+    procedureType === 'specialties'
+      ? Object.keys(procedures.specialties).map((key) => ({
+          value: key,
+          label: key,
+        }))
+      : Object.keys(procedures.exams).map((key) => ({
+          value: key,
+          label: key,
+        }))
 
-  const handlePaymentChange = (event) => {
-    const { value, checked } = event.target
-    setPayments((prev) =>
-      checked ? [...prev, value] : prev.filter((payment) => payment !== value)
-    )
-  }
-  const selectedProcedure = watch('procedimento')
+  useEffect(() => {
+    if (!procedureValue && options.length > 0) {
+      setProcedureValue(options[0].value)
+    }
+  }, [procedureType, options])
+
   useEffect(() => {
     if (
-      selectedProcedure &&
+      procedureValue &&
       procedureType &&
       procedures[procedureType] &&
-      procedures[procedureType][selectedProcedure]
+      procedures[procedureType][procedureValue]
     ) {
-      const price = procedures[procedureType][selectedProcedure] || 0
-      setProcedureValue(selectedProcedure)
+      const price = procedures[procedureType][procedureValue] || 0
 
-      // Set default values based on what payments are included
       setValue('moneyAmount', payments.includes('Dinheiro') ? price : 0)
       setValue(
         'creditCardAmount',
@@ -112,13 +118,19 @@ function Form() {
       )
       setValue('pixAmount', payments.includes('Pix') ? price : 0)
     }
-  }, [selectedProcedure, payments, procedures, procedureType, setValue])
+  }, [procedureValue, payments, procedures, procedureType, setValue])
+
+  const handlePaymentChange = (event) => {
+    const { value, checked } = event.target
+    setPayments((prev) =>
+      checked ? [...prev, value] : prev.filter((payment) => payment !== value)
+    )
+  }
 
   const onSubmit = async (data) => {
-    // First, ensure at least one payment method is selected
     if (payments.length === 0) {
       alert('Por favor, escolha pelo menos um método de pagamento!')
-      return // Stop submission if no payment method is selected
+      return
     }
 
     let submissionData = {
@@ -127,7 +139,7 @@ function Form() {
         .tz('America/Sao_Paulo', true)
         .subtract(3, 'hours')
         .toISOString(),
-      procedimento: procedureValue, // Make sure this is logging correctly
+      procedimento: procedureValue,
       payments: payments,
       observacao: data.observacao || '',
       moneyAmount: data.moneyAmount || '',
@@ -148,8 +160,8 @@ function Form() {
 
       if (response.ok) {
         showNotification('Entrada adicionada!', 'success')
-        reset() // Reset all form fields
-        setPayments([]) // Clear payments array
+        reset()
+        setPayments([])
       } else {
         console.error('Erro em enviar o formulário:', response.statusText)
       }
@@ -157,13 +169,14 @@ function Form() {
       showNotification('Failed to submit form: ' + error.message, 'error')
     }
   }
+
   return (
     <>
       <Header />
-      <div className="flex flex-col items-center text-black  justify-center min-h-screen mt-4 bg-slate-800">
+      <div className="flex flex-col items-center text-black justify-center min-h-screen mt-4 bg-slate-800">
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="font-sans text-lg w-full sm:w-1/2 px-4 py-6 bg-white rounded-lg  ring-2 ring-green-400/50 ring-offset-4 ring-offset-slate-800 overflow-y-auto max-h-screen "
+          className="font-sans text-lg w-full sm:w-1/2 px-4 py-12 bg-white rounded-lg ring-2 ring-green-400/50 ring-offset-4 ring-offset-slate-800 overflow-y-auto max-h-screen"
         >
           <div className="mb-4">
             <label htmlFor="pacienteNome" className="block text-gray-700">
@@ -179,35 +192,47 @@ function Form() {
               })}
               type="text"
               id="pacienteNome"
+              data-testid="pacienteNome"
               className="form-input mt-1 pl-2 block w-full bg-gray-300 border-slate-600 rounded-md shadow-sm focus:border-slate-800 focus:ring focus:ring-blue-500 focus:ring-opacity-50"
             />
+            {errors.pacienteNome && (
+              <p className="text-red-600">{errors.pacienteNome.message}</p>
+            )}
           </div>
-          <div className="mb-4 flex justify-evenly text-black  space-x-4">
+          <div className="mb-4 flex justify-evenly text-black space-x-4">
             <button
               type="button"
               onClick={() => setProcedureType('specialties')}
-              className={`px-4 py-2 rounded focus:outline-none ${procedureType === 'specialties' ? 'bg-blue-500 text-white' : 'bg-gray-300 hover:bg-blue-600 hover:text-white'}`}
+              className={`px-4 py-2 rounded focus:outline-none ${
+                procedureType === 'specialties'
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gray-300 hover:bg-blue-600 hover:text-white'
+              }`}
+              data-testid="specialty-button"
             >
               Especialidade
             </button>
             <button
               type="button"
               onClick={() => setProcedureType('exams')}
-              className={`px-4 py-2 rounded focus:outline-none ${procedureType === 'exams' ? 'bg-blue-500 text-white' : 'bg-gray-300 hover:bg-blue-600 hover:text-white'}`}
+              className={`px-4 py-2 rounded focus:outline-none ${
+                procedureType === 'exams'
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gray-300 hover:bg-blue-600 hover:text-white'
+              }`}
+              data-testid="exam-button"
             >
               Exame
             </button>
           </div>
-          <select
-            {...register('procedimento')}
-            className="bg-gray-200 form-select mt-1 block w-full rounded"
-          >
-            {Object.keys(options).map((key) => (
-              <option key={key} value={key}>
-                {key}
-              </option>
-            ))}
-          </select>
+          <Select
+            options={options}
+            value={options.find((option) => option.value === procedureValue)}
+            onChange={(selectedOption) =>
+              setProcedureValue(selectedOption.value)
+            }
+            className="mb-4"
+          />
 
           <div className="mb-4 mt-1">
             <label htmlFor="payments" className="block">
@@ -220,13 +245,14 @@ function Form() {
                   value="Pix"
                   {...register('paymentMethod', {
                     validate: () => payments.length > 0,
-                  })} // Custom validation for at least one checkbox
-                  checked={payments.includes('Pix')} // Ensure the checkbox is controlled
+                  })}
+                  checked={payments.includes('Pix')}
                   onChange={handlePaymentChange}
-                  className="form-checkbox custom-checkbox " // TailwindCSS utilities for size and color
-                  style={{ backgroundColor: 'white', borderColor: 'gray' }} // Inline styles for specific properties
+                  className="form-checkbox custom-checkbox"
+                  style={{ backgroundColor: 'white', borderColor: 'gray' }}
+                  data-testid="pix-checkbox"
                 />
-                <span className="ml-2 ">Pix</span>
+                <span className="ml-2">Pix</span>
               </label>
               <label className="inline-flex items-center ml-6">
                 <input
@@ -235,8 +261,9 @@ function Form() {
                   {...register('paymentMethod', {
                     validate: () => payments.length > 0,
                   })}
-                  checked={payments.includes('Dinheiro')} // Ensure the checkbox is controlled
+                  checked={payments.includes('Dinheiro')}
                   onChange={handlePaymentChange}
+                  data-testid="dinheiro-checkbox"
                 />
                 <span className="ml-2">Dinheiro</span>
               </label>
@@ -248,12 +275,16 @@ function Form() {
                     validate: () => payments.length > 0,
                   })}
                   className="form-checkbox"
-                  checked={payments.includes('Cartão de Crédito')} // Ensure the checkbox is controlled
+                  checked={payments.includes('Cartão de Crédito')}
                   onChange={handlePaymentChange}
+                  data-testid="cartao-checkbox"
                 />
                 <span className="ml-2">Cartão de Crédito</span>
               </label>
             </div>
+            {errors.paymentMethod && (
+              <p className="text-red-600">{errors.paymentMethod.message}</p>
+            )}
           </div>
           {payments.includes('Pix') && (
             <div className="mb-4">
@@ -264,6 +295,7 @@ function Form() {
                 {...register('pixAmount')}
                 type="number"
                 id="pixAmount"
+                data-testid="pixAmount"
                 className="pl-2 form-input mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50"
               />
             </div>
@@ -277,6 +309,7 @@ function Form() {
                 {...register('moneyAmount')}
                 type="number"
                 id="moneyAmount"
+                data-testid="moneyAmount"
                 className="pl-2 form-input mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50"
               />
             </div>
@@ -290,6 +323,7 @@ function Form() {
                 {...register('creditCardAmount')}
                 type="number"
                 id="creditCardAmount"
+                data-testid="creditCardAmount"
                 className="pl-2 form-input mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50"
               />
             </div>
@@ -302,6 +336,7 @@ function Form() {
           <button
             type="submit"
             className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 focus:outline-none focus:bg-blue-600"
+            data-testid="submit-button"
           >
             Enviar
           </button>

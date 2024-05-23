@@ -1,13 +1,35 @@
-.custom-checkbox {
-  background-color: white !important; /* Ensures the background is white */
-  border-color: gray !important;      /* Ensures the border color is gray */
-  background-color: red !important;
-  color: white !important;
+
+/* Custom scrollbar styling for modern browsers */
+::-webkit-scrollbar {
+  width: 12px; /* Width of the scrollbar */
+  height: 12px; /* Height of the horizontal scrollbar */
 }
 
-.form-checkbox {
+/* Track */
+::-webkit-scrollbar-track {
+  background: #f1f1f1; /* Track color */
+  border-radius: 10px;
 }
 
-input {
-    background-color: white;
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #888; /* Handle color */
+  border-radius: 10px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #555; /* Handle color on hover */
+}
+
+/* Firefox scrollbar styling */
+html {
+  scrollbar-width: thin; /* Thin scrollbar width */
+  scrollbar-color: #616d7e #f1f1f1; /* Handle and track color */
+}
+
+/* Add padding for the body to prevent content from hiding behind the scrollbar */
+body {
+  padding-right: 15px; /* Adjust the value as needed */
+  overflow-y: scroll;
 }
