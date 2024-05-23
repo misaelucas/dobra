@@ -176,7 +176,7 @@ function Form() {
       <div className="flex flex-col items-center text-black justify-center min-h-screen mt-4 bg-slate-800">
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="font-sans text-lg w-full sm:w-1/2 px-4 py-6 bg-white rounded-lg ring-2 ring-green-400/50 ring-offset-4 ring-offset-slate-800 overflow-y-auto max-h-screen"
+          className="font-sans text-lg w-full sm:w-1/2 px-4 py-12 bg-white rounded-lg ring-2 ring-green-400/50 ring-offset-4 ring-offset-slate-800 overflow-y-auto max-h-screen"
         >
           <div className="mb-4">
             <label htmlFor="pacienteNome" className="block text-gray-700">

@@ -84,7 +84,7 @@ app.post("/submit-form", async (req, res) => {
     payments,
     observacao,
     procedimento,
-    moneyAmount: moneyAmount || 0,
+    moneyAmount: moneyAmount || 0, // Convert to 0 if empty
     creditCardAmount: creditCardAmount || 0, // Convert to 0 if empty
     pixAmount: pixAmount || 0, // Convert to 0 if empty
     addedBy: new ObjectId(addedBy), // Correct use of ObjectId constructor
