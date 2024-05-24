@@ -54,7 +54,8 @@ function Form() {
     exams: {
       'ASO': 60,
       'Atestado': 200,
-      'Audiometria': 80,
+      'Audiometria Tonal': 80,
+      'Audiometria Vocal': 80,
       'Biópsia': 200,
       'Eco de Carótidas': 350,
       'Ecocardiograma (ECO)': 350,
@@ -62,7 +63,7 @@ function Form() {
       'Endoscopia': 320,
       'Espirometria': 170,
       'Fototerapia': 150,
-      'Hemograma': 30,
+      'Hemograma': 40,
       'Holter': 250,
       'Impedanciometria': 80,
       'LAB': 50,
