@@ -54,7 +54,7 @@ function Form() {
     exams: {
       'ASO': 60,
       'Atestado': 200,
-      ' metria Tonal': 80,
+      'Audiometria Tonal': 80,
       'Audiometria Vocal': 80,
       'Biópsia': 200,
       'Eco de Carótidas': 350,
