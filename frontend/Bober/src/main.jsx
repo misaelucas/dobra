@@ -9,8 +9,8 @@ import Form from './components/Form'
 import ProtectedRoute from './components/ProtectedRoute'
 import { AppProvider } from './contexts/AppContext'
 import ExpenseForm from './components/ExpenseForm'
-import { Provider } from 'react-redux' // Import Provider from react-redux
-import store from './redux/store' // Import your Redux store
+import { Provider } from 'react-redux' 
+import store from './redux/store' 
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

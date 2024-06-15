@@ -1,16 +1,16 @@
 import React from 'react'
-import { useAppContext } from './contexts/AppContext' // Import your context
-import { useSelector } from 'react-redux' // Import useSelector from Redux
+import { useAppContext } from './contexts/AppContext'
+import { useSelector } from 'react-redux'
 import './App.css'
 import Form from './components/Form'
-import Login from './pages/Login' // Hypothetical login form component
+import Login from './pages/Login'
 
 function App() {
   const { isAuthenticated, loading } = useAppContext()
-  const notification = useSelector((state) => state.forms.notification) // Example Redux state usage
+  const notification = useSelector((state) => state.forms.notification)
 
   if (loading) {
-    return <div>Loading...</div> // Show a loading indicator while checking auth state
+    return <div>Loading...</div> 
   }
 
   return (
